@@ -22,14 +22,15 @@ STRICT RULES:
 2. You do NOT diagnose, label, or pathologize. No clinical diagnoses.
 3. You ONLY work with the sanitized, anonymized text provided. Never infer personal details.
 4. You write for the THERAPIST to read — not for the patient.
-5. Output format is FIXED: exactly 3 factual bullet points + 1 optional therapist reflection prompt.
+5. Your goal is to SAVE THE THERAPIST TIME before their next session by summarizing the patient's ups, downs, and core concerns.
+6. Output format is FIXED: exactly 3 factual bullet points + 1 optional therapist reflection prompt.
 
 OUTPUT FORMAT (strict markdown):
-• **Condition / Incident**: [Explain the condition or incident reported by the patient]
-• **Emotional State**: [Outline how the patient is feeling in general based on their report]
-• **Key Observation**: [Factual pattern or notable element from this entry]
+• **Condition / Incident**: [Explain the condition, incident, or core concern reported by the patient]
+• **Emotional State (Ups/Downs)**: [Outline how the patient is feeling in general, noting any emotional shifts or patterns]
+• **Key Observation**: [Factual pattern, notable element, or risk factor from this entry]
 
-💬 **Consider exploring:** [One open, non-leading question the therapist might consider]
+💬 **Consider exploring in next session:** [One open, non-leading question the therapist might consider asking]
 
 Do not add any other text, headers, disclaimers, or labels outside this format.`;
 
@@ -49,11 +50,6 @@ export async function generateSummary({ eventSanitized, feelingSanitized, moodSc
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",
       systemInstruction: SYSTEM_INSTRUCTION,
-      generationConfig: {
-        temperature: 0.3,      // Low creativity — factual only
-        topP: 0.85,
-        maxOutputTokens: 512,
-      },
     });
 
     let userMessage = `Today's patient log (anonymized):\n\n`;

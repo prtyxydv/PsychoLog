@@ -13,7 +13,7 @@ export async function GET(request) {
 
     const { data: patient, error } = await adminClient
       .from("patients")
-      .select("id, display_alias, invite_expires, is_active, pin_hash")
+      .select("id, display_alias, invite_expires, is_active, pin_hash, has_consented")
       .eq("invite_token", token)
       .single();
 
@@ -43,6 +43,7 @@ export async function GET(request) {
       patientId:    patient.id,
       alias:        patient.display_alias,
       hasPinSet:    !!patient.pin_hash,
+      hasConsented: patient.has_consented,
       expiresAt:    patient.invite_expires,
     });
 

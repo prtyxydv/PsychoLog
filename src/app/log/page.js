@@ -119,6 +119,8 @@ function LogPageInner() {
   const [pinLoading, setPinLoading] = useState(false);
   const [showHelp, setShowHelp]     = useState(false);
   const [sessionToken, setSession]  = useState(null);
+  const [consentGiven, setConsent]  = useState(false);
+  const [consentChecks, setChecks]  = useState({ notTherapy: false, dataUse: false, voluntary: false });
 
   useEffect(() => {
     if (!token) { setPhase("invalid"); return; }
@@ -131,7 +133,11 @@ function LogPageInner() {
         if (!data.valid) { setPhase(data.expired ? "expired" : "invalid"); return; }
         setPatient(data);
         if (stored) { setSession(stored); setPhase("ready"); return; }
-        setPhase(data.hasPinSet ? "pin-verify" : "pin-set");
+        if (data.hasConsented) {
+          setPhase(data.hasPinSet ? "pin-verify" : "pin-set");
+        } else {
+          setPhase("consent");
+        }
       })
       .catch(() => setPhase("invalid"));
   }, [token]);
@@ -201,6 +207,83 @@ function LogPageInner() {
       </div>
     </div>
   );
+
+  /* ── Informed Consent Gate ──────────────────────────────── */
+  if (phase === "consent") {
+    const allChecked = consentChecks.notTherapy && consentChecks.dataUse && consentChecks.voluntary;
+    return (
+      <div className="min-h-screen patient-view" style={{ display: "flex", alignItems: "center", justifyContent: "center", position: "relative", padding: "40px 20px" }}>
+        {oceanBg}
+        {navHeader}
+        <div className="animate-fade-in glass-strong" style={{ maxWidth: "460px", width: "100%", padding: "40px 32px", position: "relative", zIndex: 1, marginTop: "60px" }}>
+          <div style={{ textAlign: "center", marginBottom: "28px" }}>
+            <div style={{ fontSize: "2rem", marginBottom: "10px" }}>📋</div>
+            <h1 style={{ fontFamily: "DM Sans, sans-serif", fontSize: "1.3rem", fontWeight: 700, color: "var(--pt-text)", marginBottom: "8px" }}>Before you begin</h1>
+            <p style={{ fontFamily: "DM Sans, sans-serif", fontSize: "0.82rem", color: "var(--pt-text-muted)", lineHeight: 1.7 }}>
+              Please read and agree to the following before accessing your check-in.
+            </p>
+          </div>
+
+          {/* Legal disclaimer box */}
+          <div style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: "var(--radius-md)", padding: "14px 16px", marginBottom: "20px" }}>
+            <p style={{ fontFamily: "DM Sans, sans-serif", fontSize: "0.78rem", color: "var(--pt-text)", lineHeight: 1.7, margin: 0 }}>
+              ⚠️ <strong>Not a substitute for professional care.</strong> PsychoLog is a documentation and check-in tool only. It does not provide therapy, medical advice, or clinical diagnosis. In a mental health emergency, contact <strong>988 (Suicide & Crisis Lifeline)</strong> or your local emergency services immediately.
+            </p>
+          </div>
+
+          {/* Consent checkboxes */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "14px", marginBottom: "28px" }}>
+            {[
+              { key: "notTherapy", text: "I understand that PsychoLog is not therapy and does not replace the advice of a licensed mental health professional." },
+              { key: "dataUse",    text: "I consent to my anonymized check-in responses being securely stored and shared only with my therapist for session preparation." },
+              { key: "voluntary",  text: "I am participating voluntarily and understand I may stop using this service at any time without penalty." },
+            ].map(({ key, text }) => (
+              <label key={key} style={{ display: "flex", gap: "12px", alignItems: "flex-start", cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={consentChecks[key]}
+                  onChange={e => setChecks(prev => ({ ...prev, [key]: e.target.checked }))}
+                  style={{ width: "18px", height: "18px", marginTop: "2px", accentColor: "var(--pt-teal)", flexShrink: 0 }}
+                />
+                <span style={{ fontFamily: "DM Sans, sans-serif", fontSize: "0.82rem", color: "var(--pt-text)", lineHeight: 1.6 }}>{text}</span>
+              </label>
+            ))}
+          </div>
+
+          <button
+            disabled={!allChecked}
+            onClick={async () => {
+              try {
+                await fetch("/api/log/consent", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ token }),
+                });
+              } catch (e) {
+                console.error("Consent save failed:", e);
+              }
+              setConsent(true);
+              setPhase(patientInfo?.hasPinSet ? "pin-verify" : "pin-set");
+            }}
+            style={{
+              width: "100%", padding: "13px", borderRadius: "var(--radius-lg)",
+              border: "none", cursor: allChecked ? "pointer" : "not-allowed",
+              background: allChecked ? "var(--pt-teal)" : "rgba(255,255,255,0.1)",
+              color: allChecked ? "white" : "var(--pt-text-subtle)",
+              fontFamily: "DM Sans, sans-serif", fontWeight: 700, fontSize: "0.95rem",
+              transition: "background 0.2s",
+            }}
+          >
+            I Agree — Continue to Check-in
+          </button>
+
+          <p style={{ fontFamily: "DM Sans, sans-serif", fontSize: "0.7rem", color: "var(--pt-text-subtle)", textAlign: "center", marginTop: "14px", lineHeight: 1.6 }}>
+            By continuing you confirm you have read and accepted the above. Your data is encrypted and only accessible by your therapist.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   /* PIN gate */
   if (phase === "pin-set" || phase === "pin-verify") {

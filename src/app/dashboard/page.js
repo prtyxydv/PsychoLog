@@ -37,7 +37,7 @@ export default async function DashboardPage() {
 
   (patients || []).forEach(p => {
     const logs = p.daily_logs || [];
-    const unread = logs.filter(l => !l.therapist_notes).length;
+    const unread = logs.filter(l => !l.is_read).length;
     stats.unread += unread;
     
     if (logs.length > 0) {

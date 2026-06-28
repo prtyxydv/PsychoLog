@@ -78,7 +78,7 @@ function CrisisModal({ onClose }) {
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           {HELPLINES.map(h => (
-            <div key={h.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px", background: "var(--pt-bg)", borderRadius: "var(--radius-md)", border: "1px solid var(--pt-glass-border)" }}>
+            <div key={h.name} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px", background: "var(--pt-bg)", borderRadius: "var(--radius-md)", border: "1px solid var(--pt-glass-border)" }}>
               <div>
                 <p style={{ margin: 0, fontSize: "0.9rem", fontWeight: 700, color: "var(--pt-text)" }}>{h.name}</p>
                 <p style={{ margin: "4px 0 0 0", fontSize: "0.75rem", color: "var(--pt-text-subtle)" }}>{h.desc}</p>
@@ -186,7 +186,25 @@ export default function LogForm({ token, patientId, sessionToken }) {
       const data = await res.json();
       
       if (res.ok) {
-        setMessages([...newMessages, { role: "assistant", content: data.response }]);
+        let responseText = data.response;
+        
+        // Handle explicit AI crisis triggers
+        if (responseText.includes("[TRIGGER_CRISIS_RESOURCES]")) {
+          responseText = responseText.replace("[TRIGGER_CRISIS_RESOURCES]", "").trim();
+          setCrisis({ triggered: true, severity: "high" });
+          setHelp(true);
+          
+          if (!crisisReported.current) {
+            crisisReported.current = true;
+            fetch("/api/crisis-alert", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ token, severity: "high", timestamp: new Date().toISOString() }),
+            }).catch(() => {});
+          }
+        }
+        
+        setMessages([...newMessages, { role: "assistant", content: responseText }]);
       } else {
         setMessages([...newMessages, { role: "assistant", content: "I'm having a little trouble connecting right now, but I hear you. Please continue if you'd like." }]);
       }

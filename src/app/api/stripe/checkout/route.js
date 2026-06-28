@@ -1,18 +1,14 @@
-import { createAdminClient, createServerClient } from "@/lib/supabase/server";
-import { cookies } from "next/headers";
+import { createAdminClient, createClient } from "@/lib/supabase/server";
+import Stripe from "stripe";
 
-/**
- * POST /api/stripe/checkout
- *
- * Creates a Stripe Checkout Session for the authenticated therapist.
- * Currently MOCKED — returns a demo URL so the full UI works
- * without live Stripe keys. When ready, uncomment the Stripe block
- * and add STRIPE_SECRET_KEY + STRIPE_PRICE_ID to .env.local.
- */
-export async function POST() {
+export async function POST(request) {
   try {
-    const cookieStore = cookies();
-    const supabase = createServerClient(cookieStore);
+    const { priceId, planName } = await request.json();
+    if (!priceId) {
+      return Response.json({ error: "Missing priceId" }, { status: 400 });
+    }
+
+    const supabase = await createClient();
 
     // ── 1. Auth check ───────────────────────────────────────
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -20,8 +16,11 @@ export async function POST() {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    /* ── 2. LIVE STRIPE (uncomment when keys are ready) ──────
-    const Stripe = (await import("stripe")).default;
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return Response.json({ error: "Missing Stripe Configuration" }, { status: 500 });
+    }
+
+    // ── 2. LIVE STRIPE ───────────────────────────────────────
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
       apiVersion: "2024-04-10",
     });
@@ -48,20 +47,12 @@ export async function POST() {
       customer: customerId,
       mode: "subscription",
       payment_method_types: ["card"],
-      line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
+      line_items: [{ price: process.env.NEXT_PUBLIC_PRO_PRICE_ID, quantity: 1 }],
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/billing?status=success`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/billing?status=cancelled`,
     });
 
     return Response.json({ url: session.url });
-    ── END LIVE STRIPE ─────────────────────────────────────── */
-
-    // ── 2. MOCKED response until keys are added ─────────────
-    console.log(`[stripe/checkout] MOCK — therapist ${user.id} initiated checkout`);
-    return Response.json({
-      url: "/dashboard/billing?status=demo",
-      mock: true,
-    });
   } catch (err) {
     console.error("[stripe/checkout]", err);
     return Response.json({ error: "Internal error" }, { status: 500 });

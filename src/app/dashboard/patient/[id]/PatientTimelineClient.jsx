@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { formatRelativeTime, getMoodMeta } from "@/lib/utils";
 import { generatePatientRecordDocx } from "@/lib/exportDocx";
 import ReactMarkdown from "react-markdown";
@@ -235,6 +237,20 @@ export default function PatientTimelineClient({ patient, initialLogs }) {
   const [logs, setLogs]       = useState(initialLogs);
   const [exporting, setExporting] = useState(false);
 
+  // Mark all logs as read when timeline is opened
+  useEffect(() => {
+    const hasUnread = logs.some(l => !l.is_read);
+    if (hasUnread) {
+      fetch(`/api/patients/${patient.id}/mark-read`, { method: "PATCH" })
+        .then(res => {
+          if (res.ok) {
+            setLogs(prev => prev.map(l => ({ ...l, is_read: true })));
+          }
+        })
+        .catch(console.error);
+    }
+  }, [patient.id, logs]);
+
   function handleSaveNote(logId, newNote) {
     setLogs(prev => prev.map(l => l.id === logId ? { ...l, therapist_notes: newNote } : l));
   }
@@ -259,6 +275,25 @@ export default function PatientTimelineClient({ patient, initialLogs }) {
     }
   }
 
+  async function handleDelete() {
+    if (!confirm(`Are you sure you want to permanently delete ${patient.display_alias} and all their logs? This cannot be undone.`)) {
+      return;
+    }
+    
+    try {
+      const res = await fetch(`/api/patients/${patient.id}/delete`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Delete failed");
+      
+      // Redirect back to dashboard upon deletion
+      window.location.href = "/dashboard";
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete patient.");
+    }
+  }
+
   return (
     <div style={{ padding: "48px", maxWidth: "800px", margin: "0 auto" }}>
       {/* Header */}
@@ -275,14 +310,49 @@ export default function PatientTimelineClient({ patient, initialLogs }) {
           </div>
         </div>
 
-        <button
-          onClick={handleExport}
-          disabled={exporting || logs.length === 0}
-          className="btn-th-primary"
-          style={{ padding: "8px 16px", fontSize: "0.8125rem", background: "var(--th-bg-secondary)", color: "var(--th-text)", border: "1px solid var(--th-sidebar-border)", flexShrink: 0 }}
-        >
-          {exporting ? "Preparing Export…" : "↓ Export Records (.docx)"}
-        </button>
+        <div style={{ display: "flex", gap: "12px" }}>
+          <button
+            onClick={handleExport}
+            disabled={exporting || logs.length === 0}
+            className="btn-th-primary"
+            style={{ padding: "8px 16px", fontSize: "0.8125rem", background: "var(--th-bg-secondary)", color: "var(--th-text)", border: "1px solid var(--th-sidebar-border)", flexShrink: 0 }}
+          >
+            {exporting ? "Preparing Export…" : "↓ Export Records (.docx)"}
+          </button>
+          <button
+            onClick={handleDelete}
+            style={{ 
+              padding: "8px 16px", fontSize: "0.8125rem", background: "rgba(239, 68, 68, 0.1)", 
+              color: "#ef4444", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: "6px", 
+              cursor: "pointer", fontWeight: 600, flexShrink: 0 
+            }}
+          >
+            Delete Patient
+          </button>
+        </div>
+      </div>
+
+      {/* Tab bar */}
+      <div style={{ display: "flex", gap: "4px", marginBottom: "24px", borderBottom: "1px solid var(--th-sidebar-border)", paddingBottom: "0" }}>
+        {[
+          { label: "📋 Timeline", href: `/dashboard/patient/${patient.id}` },
+          { label: "📅 Next Session", href: `/dashboard/patient/${patient.id}/session` },
+        ].map(tab => (
+          <Link
+            key={tab.href}
+            href={tab.href}
+            style={{
+              padding: "8px 16px", fontSize: "0.82rem", fontWeight: 600,
+              borderRadius: "6px 6px 0 0",
+              textDecoration: "none",
+              color: "var(--th-text-muted)",
+              borderBottom: "2px solid transparent",
+              transition: "all 0.15s",
+            }}
+          >
+            {tab.label}
+          </Link>
+        ))}
       </div>
 
       {/* Mood Legend */}

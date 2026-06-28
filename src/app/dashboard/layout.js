@@ -18,7 +18,7 @@ export default async function DashboardLayout({ children }) {
   // Fetch profile
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, email, org_name")
+    .select("full_name, email, org_name, is_admin, plan_type")
     .eq("id", user.id)
     .single();
 
@@ -42,7 +42,7 @@ export default async function DashboardLayout({ children }) {
   const enrichedPatients = (patients || []).map(p => {
     const logs      = p.daily_logs || [];
     const lastLog   = logs.sort((a, b) => new Date(b.submitted_at) - new Date(a.submitted_at))[0];
-    const unread    = logs.filter(l => !l.therapist_notes).length;
+    const unread    = logs.filter(l => !l.is_read).length;
     return {
       id:            p.id,
       display_alias: p.display_alias,

@@ -8,7 +8,7 @@ const PLANS = [
     price: "Free",
     badge: "CURRENT",
     badgeColor: "#22c55e",
-    desc: "Everything you need to get started. No credit card required.",
+    desc: "Everything you need to get started. For beta testing, please use completely fake names and dummy emails for your clients.",
     features: [
       "Up to 5 active patients",
       "AI session summaries",
@@ -19,48 +19,87 @@ const PLANS = [
     cta: null,
   },
   {
+    name: "Basic",
+    price: "$15/month",
+    badge: "WAITLIST",
+    badgeColor: "#6366f1",
+    desc: "Perfect for part-time practices or those just getting started.",
+    features: [
+      "Up to 15 active patients",
+      "Everything in Free Beta",
+      "Standard support",
+      "Educational Use Only (No PHI)",
+    ],
+    cta: "Join Waitlist",
+  },
+  {
     name: "Pro",
     price: "$29/month",
-    badge: "COMING SOON",
+    badge: "WAITLIST",
     badgeColor: "#f59e0b",
-    desc: "For growing practices that need unlimited capacity.",
+    desc: "For growing practices that need more capacity and deeper insights.",
     features: [
-      "Unlimited active patients",
-      "Everything in Free Beta",
+      "Up to 50 active patients",
+      "Everything in Basic",
       "Priority AI processing",
       "Advanced mood analytics",
-      "Dedicated support",
-      "HIPAA Business Associate Agreement",
+      "Educational Use Only (No PHI)",
     ],
-    cta: "Upgrade to Pro",
+    cta: "Join Waitlist",
+  },
+  {
+    name: "Elite",
+    price: "$50/month",
+    badge: "WAITLIST",
+    badgeColor: "#ec4899",
+    desc: "For full-time professionals handling high-volume caseloads.",
+    features: [
+      "Unlimited active patients",
+      "Everything in Pro",
+      "Dedicated account manager",
+      "Early access to new features",
+      "Educational Use Only (No PHI)",
+    ],
+    cta: "Join Waitlist",
   },
 ];
 
 export default function BillingClient({ profile, statusParam }) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(
-    statusParam === "demo"
-      ? "✅ Demo mode: Stripe is not yet connected. Your subscription would start here once live keys are added."
-      : statusParam === "success"
+    statusParam === "success"
       ? "🎉 Payment successful! Your plan has been upgraded."
       : statusParam === "cancelled"
       ? "Payment was cancelled. You have not been charged."
       : null
   );
 
-  async function handleUpgrade() {
+  const [showWaitlist, setShowWaitlist] = useState(false);
+  const [waitlistEmail, setWaitlistEmail] = useState("");
+  const [waitlistSuccess, setWaitlistSuccess] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState("pro");
+
+  async function handleUpgrade(planName) {
+    setSelectedPlan(planName.toLowerCase());
+    setShowWaitlist(true);
+  }
+
+  async function handleWaitlistSubmit(e) {
+    e.preventDefault();
     setLoading(true);
-    setMessage(null);
+    
     try {
-      const res = await fetch("/api/stripe/checkout", { method: "POST" });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        setMessage("Something went wrong. Please try again.");
-      }
-    } catch {
-      setMessage("Network error. Please try again.");
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: waitlistEmail, plan: selectedPlan })
+      });
+      
+      if (!res.ok) throw new Error("Failed to join waitlist");
+      
+      setWaitlistSuccess(true);
+    } catch (err) {
+      alert(err.message);
     } finally {
       setLoading(false);
     }
@@ -151,7 +190,7 @@ export default function BillingClient({ profile, statusParam }) {
 
             {plan.cta && (
               <button
-                onClick={handleUpgrade}
+                onClick={() => handleUpgrade(plan.name)}
                 disabled={loading}
                 className="btn-th-primary"
                 style={{ width: "100%", padding: "10px", fontSize: "0.875rem" }}
@@ -166,6 +205,55 @@ export default function BillingClient({ profile, statusParam }) {
       <p style={{ marginTop: "24px", fontSize: "0.75rem", color: "var(--th-text-subtle)", lineHeight: 1.6 }}>
         PsychoLog is currently in private beta. Stripe payments will go live once we complete our beta program. Early beta users may receive extended free access as a thank-you.
       </p>
+
+      {/* Waitlist & Legal Modal */}
+      {showWaitlist && (
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "20px" }}>
+          <div className="th-card" style={{ padding: "32px", maxWidth: "480px", width: "100%", position: "relative" }}>
+            <button onClick={() => setShowWaitlist(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", cursor: "pointer", fontSize: "1.2rem", color: "var(--th-text-subtle)" }}>✕</button>
+            <h2 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--th-text)", marginBottom: "12px" }}>Join the Waitlist</h2>
+            
+            {waitlistSuccess ? (
+              <div style={{ padding: "20px", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.3)", borderRadius: "8px", textAlign: "center" }}>
+                <p style={{ fontSize: "1rem", color: "var(--th-text)", margin: 0, fontWeight: 600 }}>✅ You're on the list!</p>
+                <p style={{ fontSize: "0.85rem", color: "var(--th-text-muted)", marginTop: "8px" }}>We'll review your practice details and an admin will upgrade your account shortly.</p>
+              </div>
+            ) : (
+              <>
+                <p style={{ fontSize: "0.9rem", color: "var(--th-text-muted)", lineHeight: 1.6, marginBottom: "20px" }}>
+                  To get access to premium features, please agree to our compliance terms and join the waitlist.
+                </p>
+                <form onSubmit={handleWaitlistSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                  
+                  <input
+                    type="email"
+                    required
+                    value={waitlistEmail}
+                    onChange={e => setWaitlistEmail(e.target.value)}
+                    placeholder="dr.smith@example.com"
+                    style={{ padding: "12px", borderRadius: "8px", border: "1px solid var(--th-sidebar-border)", background: "var(--th-bg-secondary)", color: "var(--th-text)", fontSize: "0.9rem" }}
+                  />
+
+                  <label style={{ display: "flex", gap: "10px", alignItems: "flex-start", cursor: "pointer", background: "var(--th-bg)", padding: "16px", borderRadius: "8px", border: "1px solid var(--th-sidebar-border)" }}>
+                    <input
+                      type="checkbox"
+                      required
+                      style={{ width: "18px", height: "18px", marginTop: "2px", accentColor: "var(--th-accent)", flexShrink: 0 }}
+                    />
+                    <span style={{ fontSize: "0.85rem", color: "var(--th-text)", lineHeight: 1.6 }}>
+                      I understand and agree that PsychoLog is an un-indexed, de-identified workflow tool. I agree that I will never input, upload, or transmit any Personally Identifiable Information (PII) or Protected Health Information (PHI)—including real names, phone numbers, or government IDs—into the platform. I maintain sole responsibility for maintaining any patient identity indexes offline.
+                    </span>
+                  </label>
+
+                  <button type="submit" disabled={loading} className="btn-th-primary" style={{ padding: "14px", fontSize: "0.95rem", fontWeight: 600, marginTop: "8px" }}>
+                    {loading ? "Joining..." : "I Agree — Join Waitlist"}
+                  </button>
+                </form>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

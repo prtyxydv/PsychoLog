@@ -1,4 +1,4 @@
-import { createAdminClient, createServerClient } from "@/lib/supabase/server";
+import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 
 /**
@@ -12,7 +12,7 @@ import { cookies } from "next/headers";
 
 async function getAuthUser() {
   const cookieStore = cookies();
-  const supabase = createServerClient(cookieStore);
+  const supabase = await createClient();
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user) return null;
   return user;

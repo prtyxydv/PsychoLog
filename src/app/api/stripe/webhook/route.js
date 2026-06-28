@@ -1,3 +1,4 @@
+import Stripe from "stripe";
 import { createAdminClient } from "@/lib/supabase/server";
 
 /**
@@ -18,8 +19,11 @@ export async function POST(request) {
   const body = await request.text();
   const signature = request.headers.get("stripe-signature");
 
-  /* ── LIVE signature verification (uncomment when ready) ───
-  const Stripe = (await import("stripe")).default;
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return Response.json({ error: "Missing Stripe Key" }, { status: 500 });
+  }
+
+  // ── LIVE signature verification ───
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
     apiVersion: "2024-04-10",
   });
@@ -35,15 +39,7 @@ export async function POST(request) {
     console.error("[webhook] Signature verification failed:", err.message);
     return new Response("Webhook signature invalid", { status: 400 });
   }
-  ── END signature verification ───────────────────────────── */
-
-  // ── MOCKED event parsing ────────────────────────────────
-  let event;
-  try {
-    event = JSON.parse(body);
-  } catch {
-    return new Response("Invalid JSON", { status: 400 });
-  }
+  // ── END signature verification ─────────────────────────────
 
   const adminClient = await createAdminClient();
 

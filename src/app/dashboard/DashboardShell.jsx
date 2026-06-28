@@ -190,12 +190,43 @@ export default function DashboardShell({ profile, initialPatients = [], children
                 textDecoration: "none", fontSize: "0.8rem",
                 color: pathname === "/dashboard/billing" ? "var(--th-accent)" : "var(--th-text-muted)",
                 background: pathname === "/dashboard/billing" ? "var(--th-accent-soft)" : "transparent",
-                fontWeight: 500,
+                fontWeight: 500, marginBottom: "2px",
                 transition: "background 0.15s ease, color 0.15s ease",
               }}
             >
               💳 Billing
             </Link>
+            <Link
+              href="/dashboard/legal"
+              style={{
+                display: "flex", alignItems: "center", gap: "8px",
+                padding: "8px 10px", borderRadius: "var(--radius-sm)",
+                textDecoration: "none", fontSize: "0.8rem",
+                color: pathname === "/dashboard/legal" ? "var(--th-accent)" : "var(--th-text-muted)",
+                background: pathname === "/dashboard/legal" ? "var(--th-accent-soft)" : "transparent",
+                fontWeight: 500,
+                transition: "background 0.15s ease, color 0.15s ease",
+              }}
+            >
+              ⚖️ Legal
+            </Link>
+            {profile?.is_admin && (
+              <Link
+                href="/admin"
+                style={{
+                  display: "flex", alignItems: "center", gap: "8px",
+                  padding: "8px 10px", borderRadius: "var(--radius-sm)",
+                  textDecoration: "none", fontSize: "0.8rem",
+                  color: "#000",
+                  background: "var(--th-accent)",
+                  fontWeight: 700,
+                  marginTop: "16px",
+                  transition: "opacity 0.15s ease",
+                }}
+              >
+                🛠️ Admin Panel
+              </Link>
+            )}
           </div>
 
           {/* New Patient button */}

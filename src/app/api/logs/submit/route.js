@@ -28,6 +28,16 @@ export async function POST(request) {
 
     const adminClient = await createAdminClient();
 
+    const { data: patientData, error: patientError } = await adminClient
+      .from("patients")
+      .select("has_consented")
+      .eq("id", patientId)
+      .single();
+
+    if (patientError || !patientData?.has_consented) {
+      return Response.json({ error: "Patient has not provided informed consent" }, { status: 403 });
+    }
+
     // ── 1. Sanitize PII locally ──────────────────────────────
     const eventSanitized   = sanitize(eventRaw || "");
     const feelingSanitized = sanitize(feelingRaw || "");
@@ -67,8 +77,6 @@ export async function POST(request) {
       .insert({
         patient_uuid:      patientId,
         mood_score:        moodScore,
-        event_raw:         eventRaw,
-        feeling_raw:       feelingRaw,
         event_sanitized:   eventSanitized,
         feeling_sanitized: feelingSanitized,
         ai_summary:        aiSummary,

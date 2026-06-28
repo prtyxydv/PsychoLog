@@ -1,4 +1,4 @@
-import { createAdminClient, createServerClient } from "@/lib/supabase/server";
+import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 
 /**
@@ -11,8 +11,7 @@ import { cookies } from "next/headers";
  */
 export async function PATCH(request, { params }) {
   try {
-    const cookieStore = cookies();
-    const supabase = createServerClient(cookieStore);
+    const supabase = await createClient();
 
     // ── 1. Verify the caller is an authenticated therapist ──
     const { data: { user }, error: authError } = await supabase.auth.getUser();

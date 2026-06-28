@@ -1,7 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/server";
 import { createClient } from "@/lib/supabase/server";
 import { sendPatientInvite } from "@/lib/resend";
-import { generatePatientAlias, generateInviteToken } from "@/lib/utils";
+import { generateInviteToken } from "@/lib/utils";
 
 export async function POST(request) {
   try {
@@ -29,20 +29,53 @@ export async function POST(request) {
       return Response.json({ error: "Expiry date must be in the future" }, { status: 400 });
     }
 
-    // ── Fetch therapist name ──────────────────────────────────
+    // ── Fetch therapist profile and plan limits ───────────────
     const { data: profile } = await supabase
       .from("profiles")
-      .select("full_name, email")
+      .select("full_name, email, plan_type")
       .eq("id", user.id)
       .single();
 
     const therapistName = profile?.full_name || "Your Therapist";
+    const planType = profile?.plan_type || "free";
+
+    // Define limits
+    const LIMITS = {
+      free: 5,
+      basic: 15,
+      pro: 50,
+      elite: 999999
+    };
+    const maxPatients = LIMITS[planType] || 5;
+
+    const adminClient = await createAdminClient();
+
+    // Get current ACTIVE patient count to check limits
+    const { count: activeCount } = await adminClient
+      .from("patients")
+      .select("*", { count: "exact", head: true })
+      .eq("therapist_id", user.id)
+      .eq("is_active", true);
+
+    if (activeCount >= maxPatients) {
+      return Response.json({ 
+        error: "LIMIT_REACHED", 
+        message: `Your ${planType.toUpperCase()} plan is limited to ${maxPatients} active patients. Please upgrade to invite more.`
+      }, { status: 403 });
+    }
 
     // ── Generate alias + token ────────────────────────────────
-    const adminClient = await createAdminClient();
-    let alias = generatePatientAlias();
     let token = generateInviteToken();
 
+    // Get total count for numbering (so patient aliases keep incrementing)
+    const { count: totalCount } = await adminClient
+      .from("patients")
+      .select("*", { count: "exact", head: true })
+      .eq("therapist_id", user.id);
+
+    let nextNum = (totalCount || 0) + 1;
+    let alias = `Patient #${nextNum}`;
+    
     // Ensure alias is unique for this therapist
     let aliasExists = true;
     while (aliasExists) {
@@ -53,7 +86,7 @@ export async function POST(request) {
         .eq("display_alias", alias)
         .single();
       if (!data) { aliasExists = false; }
-      else { alias = generatePatientAlias(); }
+      else { nextNum++; alias = `Patient #${nextNum}`; }
     }
 
     // ── Insert patient record ─────────────────────────────────
@@ -62,8 +95,8 @@ export async function POST(request) {
       .insert({
         therapist_id:   user.id,
         display_alias:  alias,
-        invite_email:   email,
         invite_token:   token,
+        invite_email:   email,
         invite_expires: new Date(expiresAt).toISOString(),
       })
       .select("id, display_alias, invite_token")

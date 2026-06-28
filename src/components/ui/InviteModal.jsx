@@ -50,7 +50,11 @@ export default function InviteModal({ onClose, onSuccess }) {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        setError(data.error || "Something went wrong. Please try again.");
+        if (data.error === "LIMIT_REACHED") {
+          setError("LIMIT_REACHED");
+        } else {
+          setError(data.error || "Something went wrong. Please try again.");
+        }
         setLoading(false);
         return;
       }
@@ -175,7 +179,24 @@ export default function InviteModal({ onClose, onSuccess }) {
             </div>
 
             {/* Error */}
-            {error && (
+            {error === "LIMIT_REACHED" ? (
+              <div
+                style={{
+                  padding: "16px", background: "rgba(245,158,11,0.1)",
+                  border: "1px solid rgba(245,158,11,0.3)", borderRadius: "var(--radius-sm)",
+                  marginBottom: "20px", textAlign: "center"
+                }}
+              >
+                <div style={{ fontSize: "2rem", marginBottom: "8px" }}>🛑</div>
+                <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--th-text)", marginBottom: "4px" }}>Patient Limit Reached</h3>
+                <p style={{ fontSize: "0.85rem", color: "var(--th-text-muted)", marginBottom: "16px", lineHeight: 1.5 }}>
+                  You have reached the maximum number of active patients for your current plan.
+                </p>
+                <a href="/dashboard/billing" className="btn-th-primary" style={{ display: "inline-block", padding: "8px 16px", textDecoration: "none", fontSize: "0.85rem" }}>
+                  View Upgrade Options
+                </a>
+              </div>
+            ) : error ? (
               <div
                 style={{
                   padding: "10px 14px", background: "#FEF2F2",
@@ -185,86 +206,88 @@ export default function InviteModal({ onClose, onSuccess }) {
               >
                 {error}
               </div>
+            ) : null}
+
+            {error !== "LIMIT_REACHED" && (
+              <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+                {/* Email */}
+                <div>
+                  <label htmlFor="invite-email" style={labelStyle}>Patient&apos;s email address</label>
+                  <input
+                    id="invite-email"
+                    type="email"
+                    required
+                    placeholder="patient@email.com"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    style={inputStyle}
+                    onFocus={e => { e.target.style.borderColor = "var(--th-accent)"; e.target.style.boxShadow = "0 0 0 3px var(--th-accent-soft)"; }}
+                    onBlur={e => { e.target.style.borderColor = "var(--th-border)"; e.target.style.boxShadow = "none"; }}
+                  />
+                </div>
+
+                {/* Therapy end date */}
+                <div>
+                  <label htmlFor="invite-expires" style={labelStyle}>
+                    Therapy end date
+                    <span style={{ fontWeight: 400, color: "var(--th-text-subtle)", marginLeft: "6px" }}>
+                      (link expires on this date)
+                    </span>
+                  </label>
+                  <input
+                    id="invite-expires"
+                    type="date"
+                    required
+                    min={minDate}
+                    value={expires}
+                    onChange={e => setExpires(e.target.value)}
+                    style={inputStyle}
+                    onFocus={e => { e.target.style.borderColor = "var(--th-accent)"; e.target.style.boxShadow = "0 0 0 3px var(--th-accent-soft)"; }}
+                    onBlur={e => { e.target.style.borderColor = "var(--th-border)"; e.target.style.boxShadow = "none"; }}
+                  />
+                  <p style={{ fontSize: "0.72rem", color: "var(--th-text-subtle)", marginTop: "5px" }}>
+                    The patient&apos;s link will stop working after this date.
+                  </p>
+                </div>
+
+                {/* Privacy note */}
+                <div
+                  style={{
+                    padding: "12px 14px",
+                    background: "var(--th-accent-soft)",
+                    border: "1px solid rgba(245,158,11,0.2)",
+                    borderRadius: "var(--radius-sm)",
+                    fontSize: "0.78rem",
+                    color: "var(--th-text-muted)",
+                    lineHeight: 1.6,
+                  }}
+                >
+                  🔒 Your patient will be assigned a random alias (e.g. <em>Patient-Alpha-7</em>). Their real name and email are never linked to their clinical logs.
+                </div>
+
+                {/* Buttons */}
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <button
+                    id="btn-cancel-invite"
+                    type="button"
+                    onClick={onClose}
+                    className="btn-th-secondary"
+                    style={{ flex: 1 }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    id="btn-send-invite"
+                    type="submit"
+                    disabled={loading}
+                    className="btn-th-primary"
+                    style={{ flex: 2, opacity: loading ? 0.7 : 1, cursor: loading ? "not-allowed" : "pointer" }}
+                  >
+                    {loading ? "Sending…" : "Send Invite →"}
+                  </button>
+                </div>
+              </form>
             )}
-
-            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
-              {/* Email */}
-              <div>
-                <label htmlFor="invite-email" style={labelStyle}>Patient&apos;s email address</label>
-                <input
-                  id="invite-email"
-                  type="email"
-                  required
-                  placeholder="patient@email.com"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  style={inputStyle}
-                  onFocus={e => { e.target.style.borderColor = "var(--th-accent)"; e.target.style.boxShadow = "0 0 0 3px var(--th-accent-soft)"; }}
-                  onBlur={e => { e.target.style.borderColor = "var(--th-border)"; e.target.style.boxShadow = "none"; }}
-                />
-              </div>
-
-              {/* Therapy end date */}
-              <div>
-                <label htmlFor="invite-expires" style={labelStyle}>
-                  Therapy end date
-                  <span style={{ fontWeight: 400, color: "var(--th-text-subtle)", marginLeft: "6px" }}>
-                    (link expires on this date)
-                  </span>
-                </label>
-                <input
-                  id="invite-expires"
-                  type="date"
-                  required
-                  min={minDate}
-                  value={expires}
-                  onChange={e => setExpires(e.target.value)}
-                  style={inputStyle}
-                  onFocus={e => { e.target.style.borderColor = "var(--th-accent)"; e.target.style.boxShadow = "0 0 0 3px var(--th-accent-soft)"; }}
-                  onBlur={e => { e.target.style.borderColor = "var(--th-border)"; e.target.style.boxShadow = "none"; }}
-                />
-                <p style={{ fontSize: "0.72rem", color: "var(--th-text-subtle)", marginTop: "5px" }}>
-                  The patient&apos;s link will stop working after this date.
-                </p>
-              </div>
-
-              {/* Privacy note */}
-              <div
-                style={{
-                  padding: "12px 14px",
-                  background: "var(--th-accent-soft)",
-                  border: "1px solid rgba(245,158,11,0.2)",
-                  borderRadius: "var(--radius-sm)",
-                  fontSize: "0.78rem",
-                  color: "var(--th-text-muted)",
-                  lineHeight: 1.6,
-                }}
-              >
-                🔒 Your patient will be assigned a random alias (e.g. <em>Patient-Alpha-7</em>). Their real name and email are never linked to their clinical logs.
-              </div>
-
-              {/* Buttons */}
-              <div style={{ display: "flex", gap: "10px" }}>
-                <button
-                  id="btn-cancel-invite"
-                  type="button"
-                  onClick={onClose}
-                  className="btn-th-secondary"
-                  style={{ flex: 1 }}
-                >
-                  Cancel
-                </button>
-                <button
-                  id="btn-send-invite"
-                  type="submit"
-                  disabled={loading}
-                  className="btn-th-primary"
-                  style={{ flex: 2, opacity: loading ? 0.7 : 1, cursor: loading ? "not-allowed" : "pointer" }}
-                >
-                  {loading ? "Sending…" : "Send Invite →"}
-                </button>
-              </div>
-            </form>
           </>
         )}
       </div>

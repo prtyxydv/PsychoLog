@@ -166,6 +166,38 @@ export default function DashboardShell({ profile, initialPatients = [], children
             )}
           </div>
 
+          {/* Utility nav links */}
+          <div style={{ padding: "8px 12px 4px", borderTop: "1px solid var(--th-sidebar-border)" }}>
+            <Link
+              href="/dashboard/notes"
+              style={{
+                display: "flex", alignItems: "center", gap: "8px",
+                padding: "8px 10px", borderRadius: "var(--radius-sm)",
+                textDecoration: "none", fontSize: "0.8rem",
+                color: pathname === "/dashboard/notes" ? "var(--th-accent)" : "var(--th-text-muted)",
+                background: pathname === "/dashboard/notes" ? "var(--th-accent-soft)" : "transparent",
+                fontWeight: 500, marginBottom: "2px",
+                transition: "background 0.15s ease, color 0.15s ease",
+              }}
+            >
+              📝 My Notes
+            </Link>
+            <Link
+              href="/dashboard/billing"
+              style={{
+                display: "flex", alignItems: "center", gap: "8px",
+                padding: "8px 10px", borderRadius: "var(--radius-sm)",
+                textDecoration: "none", fontSize: "0.8rem",
+                color: pathname === "/dashboard/billing" ? "var(--th-accent)" : "var(--th-text-muted)",
+                background: pathname === "/dashboard/billing" ? "var(--th-accent-soft)" : "transparent",
+                fontWeight: 500,
+                transition: "background 0.15s ease, color 0.15s ease",
+              }}
+            >
+              💳 Billing
+            </Link>
+          </div>
+
           {/* New Patient button */}
           <div style={{ padding: "12px", borderTop: "1px solid var(--th-sidebar-border)" }}>
             <button

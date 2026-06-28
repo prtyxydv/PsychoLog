@@ -20,6 +20,7 @@ export default async function PatientPage({ params }) {
     .select(`
       id,
       display_alias,
+      folder_name,
       created_at,
       invite_expires,
       daily_logs (

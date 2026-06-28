@@ -30,37 +30,7 @@ const PLANS = [
       "Standard support",
       "Educational Use Only (No PHI)",
     ],
-    cta: "Join Waitlist",
-  },
-  {
-    name: "Pro",
-    price: "$29/month",
-    badge: "WAITLIST",
-    badgeColor: "#f59e0b",
-    desc: "For growing practices that need more capacity and deeper insights.",
-    features: [
-      "Up to 50 active patients",
-      "Everything in Basic",
-      "Priority AI processing",
-      "Advanced mood analytics",
-      "Educational Use Only (No PHI)",
-    ],
-    cta: "Join Waitlist",
-  },
-  {
-    name: "Elite",
-    price: "$50/month",
-    badge: "WAITLIST",
-    badgeColor: "#ec4899",
-    desc: "For full-time professionals handling high-volume caseloads.",
-    features: [
-      "Unlimited active patients",
-      "Everything in Pro",
-      "Dedicated account manager",
-      "Early access to new features",
-      "Educational Use Only (No PHI)",
-    ],
-    cta: "Join Waitlist",
+    cta: "Upgrade Now",
   },
 ];
 
@@ -84,23 +54,23 @@ export default function BillingClient({ profile, statusParam }) {
     setShowWaitlist(true);
   }
 
-  async function handleWaitlistSubmit(e) {
+  async function handleCheckoutSubmit(e) {
     e.preventDefault();
     setLoading(true);
     
     try {
-      const res = await fetch("/api/waitlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: waitlistEmail, plan: selectedPlan })
-      });
+      const userId = profile?.id;
+      if (!userId) {
+        throw new Error("User ID not found. Please log in again.");
+      }
+
+      // Using the single checkout page provided by the user, appending custom data for webhooks
+      const checkoutUrl = `https://psychologoff.lemonsqueezy.com/checkout/buy/a3344f5d-6d3b-4b24-8442-9e9b15cf0618?checkout[custom][user_id]=${userId}`;
       
-      if (!res.ok) throw new Error("Failed to join waitlist");
-      
-      setWaitlistSuccess(true);
+      // Redirect to Lemon Squeezy Checkout
+      window.location.href = checkoutUrl;
     } catch (err) {
       alert(err.message);
-    } finally {
       setLoading(false);
     }
   }
@@ -203,7 +173,7 @@ export default function BillingClient({ profile, statusParam }) {
       </div>
 
       <p style={{ marginTop: "24px", fontSize: "0.75rem", color: "var(--th-text-subtle)", lineHeight: 1.6 }}>
-        PsychoLog is currently in private beta. Stripe payments will go live once we complete our beta program. Early beta users may receive extended free access as a thank-you.
+        Payments are securely processed via Lemon Squeezy. By upgrading, you agree to our Terms of Service.
       </p>
 
       {/* Waitlist & Legal Modal */}
@@ -211,7 +181,7 @@ export default function BillingClient({ profile, statusParam }) {
         <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "20px" }}>
           <div className="th-card" style={{ padding: "32px", maxWidth: "480px", width: "100%", position: "relative" }}>
             <button onClick={() => setShowWaitlist(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", cursor: "pointer", fontSize: "1.2rem", color: "var(--th-text-subtle)" }}>✕</button>
-            <h2 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--th-text)", marginBottom: "12px" }}>Join the Waitlist</h2>
+            <h2 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--th-text)", marginBottom: "12px" }}>Upgrade Plan</h2>
             
             {waitlistSuccess ? (
               <div style={{ padding: "20px", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.3)", borderRadius: "8px", textAlign: "center" }}>
@@ -221,19 +191,10 @@ export default function BillingClient({ profile, statusParam }) {
             ) : (
               <>
                 <p style={{ fontSize: "0.9rem", color: "var(--th-text-muted)", lineHeight: 1.6, marginBottom: "20px" }}>
-                  To get access to premium features, please agree to our compliance terms and join the waitlist.
+                  To upgrade to a paid plan, please agree to our compliance terms before checking out securely via Lemon Squeezy.
                 </p>
-                <form onSubmit={handleWaitlistSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <form onSubmit={handleCheckoutSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                   
-                  <input
-                    type="email"
-                    required
-                    value={waitlistEmail}
-                    onChange={e => setWaitlistEmail(e.target.value)}
-                    placeholder="dr.smith@example.com"
-                    style={{ padding: "12px", borderRadius: "8px", border: "1px solid var(--th-sidebar-border)", background: "var(--th-bg-secondary)", color: "var(--th-text)", fontSize: "0.9rem" }}
-                  />
-
                   <label style={{ display: "flex", gap: "10px", alignItems: "flex-start", cursor: "pointer", background: "var(--th-bg)", padding: "16px", borderRadius: "8px", border: "1px solid var(--th-sidebar-border)" }}>
                     <input
                       type="checkbox"
@@ -246,7 +207,7 @@ export default function BillingClient({ profile, statusParam }) {
                   </label>
 
                   <button type="submit" disabled={loading} className="btn-th-primary" style={{ padding: "14px", fontSize: "0.95rem", fontWeight: 600, marginTop: "8px" }}>
-                    {loading ? "Joining..." : "I Agree — Join Waitlist"}
+                    {loading ? "Redirecting to secure checkout..." : "I Agree — Continue to Checkout"}
                   </button>
                 </form>
               </>

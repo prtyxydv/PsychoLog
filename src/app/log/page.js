@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { HELPLINES } from "@/lib/crisisDetector";
+import PsychologLogo from "@/components/ui/PsychologLogo";
 
 // Dynamically import LogForm so PIN gate loads fast
 const LogForm = dynamic(() => import("@/components/ui/LogForm"), { ssr: false });
@@ -170,7 +171,7 @@ function LogPageInner() {
   const navHeader = (
     <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 10, padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-        <span style={{ fontSize: "1.1rem" }}>🧠</span>
+        <PsychologLogo size={18} style={{ color: "var(--pt-accent)" }} />
         <span style={{ fontFamily: "DM Sans, sans-serif", fontWeight: 700, fontSize: "0.9rem", color: "var(--pt-text)" }}>PsychoLog</span>
       </div>
       <button id="btn-need-help" onClick={() => setShowHelp(true)} style={{ background: "var(--pt-glass)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", border: "1px solid var(--pt-glass-border)", borderRadius: "999px", padding: "6px 14px", fontSize: "0.75rem", fontWeight: 600, color: "var(--pt-text-muted)", cursor: "pointer", fontFamily: "DM Sans, sans-serif" }}>
@@ -184,7 +185,9 @@ function LogPageInner() {
     <div className="min-h-screen patient-view" style={{ display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
       {oceanBg}
       <div className="animate-breath glass" style={{ padding: "40px", textAlign: "center", position: "relative", zIndex: 1 }}>
-        <div style={{ fontSize: "2rem", marginBottom: "12px" }}>🧠</div>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "12px" }}>
+          <PsychologLogo size={32} style={{ color: "var(--pt-accent)" }} />
+        </div>
         <p style={{ fontFamily: "DM Sans, sans-serif", color: "var(--pt-text-muted)", fontSize: "0.9rem" }}>Just a moment…</p>
       </div>
     </div>

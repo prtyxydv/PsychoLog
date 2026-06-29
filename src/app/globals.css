@@ -95,9 +95,9 @@
   --th-text:         #f5f4f2;
   --th-text-muted:   #a39d97;
   --th-text-subtle:  #6b6560;
-  --th-accent:       #2dd4bf;
-  --th-accent-soft:  rgba(13,148,136,0.15);
-  --th-accent-hover: #14b8a6;
+  --th-accent:       #fbbf24; /* Warm premium gold */
+  --th-accent-soft:  rgba(245,158,11,0.15);
+  --th-accent-hover: #f59e0b;
   --th-sidebar:      #1a1816;
   --th-sidebar-border: #2e2b28;
   --th-card:         #232120;

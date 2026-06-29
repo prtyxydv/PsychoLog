@@ -43,33 +43,43 @@ function FolderLabel({ patientId, initialFolder }) {
   }
 
   return editing ? (
-    <input
-      autoFocus
-      value={draft}
-      onChange={e => setDraft(e.target.value)}
-      onBlur={save}
-      onKeyDown={e => { if (e.key === "Enter") save(); if (e.key === "Escape") { setEditing(false); setDraft(folder); } }}
-      maxLength={80}
-      style={{
-        fontSize: "0.75rem", padding: "2px 10px", borderRadius: "999px",
-        border: "1px solid var(--th-accent)", background: "var(--th-bg-secondary)",
-        color: "var(--th-text)", fontFamily: "Inter, sans-serif", outline: "none",
-        width: "160px",
-      }}
-    />
+    <div style={{ position: "relative", display: "inline-block" }}>
+      <input
+        autoFocus
+        value={draft}
+        onChange={e => setDraft(e.target.value)}
+        onBlur={save}
+        onKeyDown={e => { if (e.key === "Enter") save(); if (e.key === "Escape") { setEditing(false); setDraft(folder); } }}
+        maxLength={80}
+        placeholder="Enter a folder name..."
+        style={{
+          fontSize: "0.75rem", padding: "4px 12px", borderRadius: "999px",
+          border: "1px solid var(--th-accent)", background: "var(--th-bg-secondary)",
+          color: "var(--th-text)", fontFamily: "Inter, sans-serif", outline: "none",
+          width: "180px", boxShadow: "0 0 0 2px var(--th-accent-soft)"
+        }}
+      />
+      <span style={{ position: "absolute", right: "8px", top: "50%", transform: "translateY(-50%)", fontSize: "0.6rem", color: "var(--th-text-subtle)" }}>
+        ⏎
+      </span>
+    </div>
   ) : (
     <button
       onClick={() => { setDraft(folder); setEditing(true); }}
-      title="Click to rename folder"
+      title="Click to organize patient into a folder"
       style={{
-        fontSize: "0.7rem", fontWeight: 600, padding: "2px 10px",
-        borderRadius: "999px", border: "1px solid var(--th-sidebar-border)",
-        background: "var(--th-bg-secondary)", color: saving ? "var(--th-text-subtle)" : "var(--th-accent)",
-        cursor: "pointer", fontFamily: "Inter, sans-serif", letterSpacing: "0.03em",
+        display: "inline-flex", alignItems: "center", gap: "6px",
+        fontSize: "0.75rem", fontWeight: 600, padding: "4px 12px",
+        borderRadius: "999px", border: "1px dashed var(--th-accent)",
+        background: "var(--th-accent-soft)", color: saving ? "var(--th-text-subtle)" : "var(--th-accent)",
+        cursor: "pointer", fontFamily: "Inter, sans-serif", letterSpacing: "0.02em",
         transition: "all 0.15s ease",
       }}
+      onMouseEnter={e => { e.currentTarget.style.borderStyle = "solid"; }}
+      onMouseLeave={e => { e.currentTarget.style.borderStyle = "dashed"; }}
     >
-      📁 {saving ? "Saving…" : folder}
+      <span>📁 {folder === "General" ? "Assign Folder" : `Folder: ${folder}`}</span>
+      <span style={{ fontSize: "0.8rem", opacity: 0.7 }}>✎</span>
     </button>
   );
 }

@@ -32,7 +32,8 @@ export default async function PatientPage({ params }) {
         ai_summary,
         therapist_notes,
         crisis_detected,
-        crisis_severity
+        crisis_severity,
+        is_read
       )
     `)
     .eq("id", id)

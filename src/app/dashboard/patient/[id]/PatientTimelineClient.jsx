@@ -85,11 +85,12 @@ function FolderLabel({ patientId, initialFolder }) {
 }
 
 // ── Log Card ──────────────────────────────────────────────────
-function LogCard({ log, onSaveNote }) {
+function LogCard({ log, onSaveNote, onMarkRead }) {
   const [note, setNote]       = useState(log.therapist_notes || "");
   const [saving, setSaving]   = useState(false);
   const [saved, setSaved]     = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isRead, setIsRead]   = useState(log.is_read ?? true);
 
   const moodColor = getMoodMeta(log.mood_score).color;
   const dotColor  = getMoodDotColor(log.mood_score);
@@ -130,7 +131,9 @@ function LogCard({ log, onSaveNote }) {
   const prompt  = summaryParts[1] ? `💬 ${summaryParts[1]}` : "";
 
   return (
-    <div className="th-card animate-fade-in-up" style={{ marginBottom: "24px", position: "relative" }}>
+    <div className="th-card animate-fade-in-up" style={{ marginBottom: "24px", position: "relative", border: !isRead ? "1px solid rgba(34,211,238,0.25)" : undefined }}
+      onClick={() => { if (!isRead) { setIsRead(true); onMarkRead && onMarkRead(log.id); } }}
+    >
       {/* Date & Mood */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", paddingBottom: "16px", borderBottom: "1px solid var(--th-sidebar-border)" }}>
         <div>
@@ -141,9 +144,18 @@ function LogCard({ log, onSaveNote }) {
             {formatRelativeTime(log.submitted_at)}
           </p>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "6px", background: "var(--th-bg-secondary)", padding: "4px 12px", borderRadius: "999px", border: "1px solid var(--th-sidebar-border)" }}>
-          <span style={{ fontSize: "1.2rem" }}>{MOOD_EMOJI[(log.mood_score ?? 5) - 1]}</span>
-          <span style={{ fontWeight: 700, fontSize: "0.85rem", color: moodColor }}>{log.mood_score ?? "?"}/10</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          {!isRead && (
+            <span style={{
+              fontSize: "0.62rem", fontWeight: 900, letterSpacing: "0.06em",
+              color: "#000", background: "#22d3ee",
+              padding: "2px 8px", borderRadius: "999px",
+            }}>UNREAD</span>
+          )}
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", background: "var(--th-bg-secondary)", padding: "4px 12px", borderRadius: "999px", border: "1px solid var(--th-sidebar-border)" }}>
+            <span style={{ fontSize: "1.2rem" }}>{MOOD_EMOJI[(log.mood_score ?? 5) - 1]}</span>
+            <span style={{ fontWeight: 700, fontSize: "0.85rem", color: moodColor }}>{log.mood_score ?? "?"}/10</span>
+          </div>
         </div>
       </div>
 
@@ -250,10 +262,10 @@ export default function PatientTimelineClient({ patient, initialLogs }) {
   const pathname = usePathname();
   const activeTab = pathname.endsWith("/session") ? "session" : "timeline";
 
-  // Mark all logs as read when timeline is opened
+  // Mark all logs as read when timeline is opened — only run once on mount
   useEffect(() => {
-    const hasUnread = logs.some(l => !l.is_read);
-    if (hasUnread) {
+    const unreadIds = initialLogs.filter(l => !l.is_read).map(l => l.id);
+    if (unreadIds.length > 0) {
       fetch(`/api/patients/${patient.id}/mark-read`, { method: "PATCH" })
         .then(res => {
           if (res.ok) {
@@ -262,7 +274,12 @@ export default function PatientTimelineClient({ patient, initialLogs }) {
         })
         .catch(console.error);
     }
-  }, [patient.id, logs]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [patient.id]);
+
+  function handleMarkRead(logId) {
+    setLogs(prev => prev.map(l => l.id === logId ? { ...l, is_read: true } : l));
+  }
 
   function handleSaveNote(logId, newNote) {
     setLogs(prev => prev.map(l => l.id === logId ? { ...l, therapist_notes: newNote } : l));
@@ -306,6 +323,8 @@ export default function PatientTimelineClient({ patient, initialLogs }) {
       alert("Failed to delete patient.");
     }
   }
+
+  const unreadCount = logs.filter(l => !l.is_read).length;
 
   return (
     <div style={{ padding: "48px", maxWidth: "800px", margin: "0 auto" }}>
@@ -417,8 +436,24 @@ export default function PatientTimelineClient({ patient, initialLogs }) {
         })}
       </div>
 
+      {/* Unread banner */}
+      {unreadCount > 0 && (
+        <div style={{
+          padding: "12px 18px", borderRadius: "10px", marginBottom: "20px",
+          background: "rgba(34,211,238,0.07)", border: "1px solid rgba(34,211,238,0.25)",
+          display: "flex", alignItems: "center", gap: "10px",
+        }}>
+          <span style={{ fontSize: "1.1rem" }}>📬</span>
+          <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "#22d3ee" }}>
+            {unreadCount} unread log{unreadCount > 1 ? "s" : ""}
+          </span>
+          <span style={{ fontSize: "0.82rem", color: "var(--th-text-muted)" }}>— cards glow cyan, marked read on open</span>
+        </div>
+      )}
+
       {/* Mood Legend */}
       <MoodLegend />
+
 
       {/* Timeline */}
       <div style={{ position: "relative" }}>
@@ -432,20 +467,22 @@ export default function PatientTimelineClient({ patient, initialLogs }) {
         ) : (
           logs.map(log => (
             <div key={log.id} style={{ display: "flex", gap: "24px", position: "relative", zIndex: 1 }}>
-              {/* Mood-coloured timeline dot */}
+              {/* Mood-coloured timeline dot — ring in cyan if unread */}
               <div style={{ width: "34px", flexShrink: 0, display: "flex", justifyContent: "center" }}>
                 <div style={{
                   width: "14px", height: "14px", borderRadius: "50%",
                   background: getMoodDotColor(log.mood_score),
                   border: "2px solid var(--th-bg)",
                   marginTop: "24px", zIndex: 2,
-                  boxShadow: `0 0 0 2px ${getMoodDotColor(log.mood_score)}40`,
-                  transition: "background 0.2s ease",
+                  boxShadow: log.is_read
+                    ? `0 0 0 2px ${getMoodDotColor(log.mood_score)}40`
+                    : `0 0 0 3px #22d3ee, 0 0 8px #22d3ee80`,
+                  transition: "box-shadow 0.3s ease",
                 }} />
               </div>
 
               <div style={{ flex: 1 }}>
-                <LogCard log={log} onSaveNote={handleSaveNote} />
+                <LogCard log={log} onSaveNote={handleSaveNote} onMarkRead={handleMarkRead} />
               </div>
             </div>
           ))

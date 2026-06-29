@@ -15,11 +15,13 @@ export default async function LandingPage() {
   }
 
   // Fetch profile
-  const { data: profile } = await supabase
+  const { data: profileData } = await supabase
     .from("profiles")
-    .select("full_name")
+    .select("full_name, plan_type")
     .eq("id", user.id)
     .single();
+
+  const profile = { ...profileData, subscription_tier: profileData?.plan_type || "Free" };
 
   // Fetch patients for unread stats
   const { data: patients } = await supabase

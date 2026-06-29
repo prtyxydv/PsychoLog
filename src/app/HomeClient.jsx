@@ -138,6 +138,31 @@ export default function HomeClient({ profile, unreadPatients, upcomingSessions }
             </div>
           </div>
 
+          {/* Account & Subscription */}
+          <div className="th-card animate-fade-in-up delay-300" style={{ padding: "32px", display: "flex", flexDirection: "column" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px" }}>
+              <span style={{ fontSize: "1.5rem" }}>💳</span>
+              <h3 style={{ fontSize: "1.1rem", fontWeight: 700 }}>Subscription Plan</h3>
+            </div>
+            
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "16px", justifyContent: "center" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: "16px", borderBottom: "1px solid var(--th-border)" }}>
+                <span style={{ color: "var(--th-text-muted)" }}>Current Tier</span>
+                <span style={{ color: "var(--th-accent)", fontWeight: 800, textTransform: "capitalize" }}>{profile?.subscription_tier || "Free"}</span>
+              </div>
+              <p style={{ fontSize: "0.85rem", color: "var(--th-text-subtle)", lineHeight: 1.6 }}>
+                Need more limits or premium features? Upgrade to a pro plan via Lemon Squeezy to get unlimited session ingestion.
+              </p>
+              <Link 
+                href="/dashboard/billing" 
+                className="btn-th-secondary"
+                style={{ textAlign: "center", padding: "12px", textDecoration: "none", marginTop: "auto" }}
+              >
+                Manage Subscription
+              </Link>
+            </div>
+          </div>
+
         </div>
       </main>
     </div>

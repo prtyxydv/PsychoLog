@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -12,13 +13,33 @@ export default function DashboardShell({ profile, initialPatients = [], children
   const [patients, setPatients]       = useState(initialPatients);
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter]           = useState("All");
-  
+  const [isDark, setIsDark]           = useState(false);
+
   const pathname = usePathname();
-  const router = useRouter();
+  const router   = useRouter();
   const supabase = createClient();
-  
+
   // Extract patient ID from URL if we are on a patient page
   const selectedId = pathname.match(/\/dashboard\/patient\/([^/]+)/)?.[1] || null;
+
+  /* ── Theme toggle: read system preference on mount, then honour manual override ── */
+  useEffect(() => {
+    const stored = localStorage.getItem("psycholog-theme");
+    if (stored) {
+      setIsDark(stored === "dark");
+    } else {
+      setIsDark(window.matchMedia("(prefers-color-scheme: dark)").matches);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    localStorage.setItem("psycholog-theme", isDark ? "dark" : "light");
+  }, [isDark]);
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -67,25 +88,40 @@ export default function DashboardShell({ profile, initialPatients = [], children
           <Link
             href="/dashboard"
             style={{
-              padding: "20px 16px 16px",
+              padding: "16px",
               borderBottom: "1px solid var(--th-sidebar-border)",
-              display: "flex", alignItems: "center", gap: "8px",
-              textDecoration: "none"
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              textDecoration: "none",
             }}
           >
-            <div
-              style={{
-                width: "30px", height: "30px", borderRadius: "8px",
-                background: "linear-gradient(135deg, var(--th-accent), #FCD34D)",
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <div style={{
+                width: "34px", height: "34px", borderRadius: "9px",
+                background: "linear-gradient(135deg, #0d9488, #2dd4bf)",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: "14px", flexShrink: 0,
-              }}
-            >
-              🧠
+                flexShrink: 0, overflow: "hidden", padding: "4px",
+                boxShadow: "0 2px 8px rgba(13,148,136,0.25)",
+              }}>
+                <Image
+                  src="/logo.svg"
+                  alt="PsychoLog"
+                  width={26}
+                  height={26}
+                  style={{ filter: "brightness(0) invert(1)" }}
+                />
+              </div>
+              <span style={{ fontWeight: 800, fontSize: "0.95rem", letterSpacing: "-0.025em", color: "var(--th-text)" }}>
+                PsychoLog
+              </span>
             </div>
-            <span style={{ fontWeight: 700, fontSize: "0.9rem", letterSpacing: "-0.02em", color: "var(--th-text)" }}>
-              PsychoLog
-            </span>
+            {/* Theme toggle */}
+            <button
+              className="theme-toggle"
+              onClick={e => { e.preventDefault(); setIsDark(d => !d); }}
+              title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {isDark ? "☀️" : "🌙"}
+            </button>
           </Link>
 
           {/* Search + filters */}
@@ -227,7 +263,7 @@ export default function DashboardShell({ profile, initialPatients = [], children
                   display: "flex", alignItems: "center", gap: "8px",
                   padding: "8px 10px", borderRadius: "var(--radius-sm)",
                   textDecoration: "none", fontSize: "0.8rem",
-                  color: "#000",
+                  color: "#fff",
                   background: "var(--th-accent)",
                   fontWeight: 700,
                   marginTop: "16px",
@@ -237,7 +273,7 @@ export default function DashboardShell({ profile, initialPatients = [], children
                 🛠️ Admin Panel
               </Link>
             )}
-            
+
             <button
               onClick={handleLogout}
               style={{
@@ -248,7 +284,7 @@ export default function DashboardShell({ profile, initialPatients = [], children
                 marginTop: "16px", transition: "background 0.15s ease",
                 fontFamily: "Inter, sans-serif",
               }}
-              onMouseEnter={e => e.currentTarget.style.background = "#FEF2F2"}
+              onMouseEnter={e => e.currentTarget.style.background = "rgba(220,38,38,0.07)"}
               onMouseLeave={e => e.currentTarget.style.background = "transparent"}
             >
               🚪 Sign Out

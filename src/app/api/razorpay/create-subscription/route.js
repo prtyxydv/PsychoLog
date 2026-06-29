@@ -15,15 +15,9 @@ export async function POST(req) {
       return NextResponse.json({ error: "Invalid plan selected" }, { status: 400 });
     }
 
-    // Read environment variable or use the regenerated test key secret as fallback
-    const keySecret = process.env.RAZORPAY_KEY_SECRET || "3yxgbJjf4rfiRUqohnojf9q9";
-    const keyId = process.env.RAZORPAY_KEY_ID; 
-
-    if (!keyId) {
-      return NextResponse.json({
-        error: "Missing Razorpay Key ID. Please set RAZORPAY_KEY_ID in Vercel (or reply with the full Key ID from your dashboard)."
-      }, { status: 500 });
-    }
+    // Read environment variable or use the active test key credentials as fallback
+    const keyId = process.env.RAZORPAY_KEY_ID || "rzp_test_T7RU0bzHddlLHF"; 
+    const keySecret = process.env.RAZORPAY_KEY_SECRET || "UkjPL7hNkHvtIWI7G7d7uPeF";
 
     // Map plan IDs dynamically with fallbacks from your dashboard
     const planIdMap = {

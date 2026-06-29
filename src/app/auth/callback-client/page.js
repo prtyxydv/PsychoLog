@@ -8,28 +8,52 @@ export default function AuthCallbackClient() {
 
   useEffect(() => {
     const supabase = createClient();
-
     const code = new URLSearchParams(window.location.search).get("code");
 
+    async function checkUserSession(session) {
+      if (!session?.user?.email) {
+        setError("Unable to retrieve email from session.");
+        return;
+      }
+      try {
+        const wlRes = await fetch("/api/waitlist/check", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: session.user.email }),
+        });
+        const wlData = await wlRes.json();
+
+        if (!wlRes.ok || !wlData.approved) {
+          // Immediately sign out to clear session cookies
+          await supabase.auth.signOut();
+          setError(`The email address '${session.user.email}' is not approved on the waitlist. Please register at /waitlist first.`);
+          return;
+        }
+
+        // Approved — redirect to homepage
+        window.location.replace("/");
+      } catch (err) {
+        await supabase.auth.signOut();
+        setError("Error verifying waitlist status. Please try logging in again.");
+      }
+    }
+
     if (code) {
-      // Exchange the PKCE code for a real session
       supabase.auth.exchangeCodeForSession(code).then(({ data, error }) => {
         if (error) {
           setError(error.message);
         } else if (data?.session) {
-          // Session confirmed — hard reload to screensaver so server reads fresh cookie
-          window.location.replace("/");
+          checkUserSession(data.session);
         } else {
           setError("Session exchange failed. Please try logging in again.");
         }
       });
     } else {
-      // No code param — maybe a hash-based flow, try getSession
       supabase.auth.getSession().then(({ data: { session }, error }) => {
         if (error) {
           setError(error.message);
         } else if (session) {
-          window.location.replace("/");
+          checkUserSession(session);
         } else {
           setError("No authentication code found. Please try logging in again.");
         }

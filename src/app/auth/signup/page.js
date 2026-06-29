@@ -38,6 +38,26 @@ export default function SignupPage() {
     setLoading(true);
     setError("");
 
+    try {
+      // Verify against the waitlist check API
+      const wlRes = await fetch("/api/waitlist/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const wlData = await wlRes.json();
+
+      if (!wlRes.ok || !wlData.approved) {
+        setError(wlData.error || "Your email is not approved on the waitlist yet. Please register your interest at /waitlist.");
+        setLoading(false);
+        return;
+      }
+    } catch (err) {
+      setError("Failed to verify waitlist status. Please try again.");
+      setLoading(false);
+      return;
+    }
+
     const { error } = await supabase.auth.signUp({
       email, password,
       options: {

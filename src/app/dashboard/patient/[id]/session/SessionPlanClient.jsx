@@ -2,8 +2,13 @@
 
 import { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
-export default function SessionPlanClient({ patientId, patientAlias }) {
+export default function SessionPlanClient({ patientId, patientAlias, patientCreatedAt, patientFolder }) {
+  const pathname = usePathname();
+  const activeTab = pathname.endsWith("/session") ? "session" : "timeline";
+
   const [appointment, setAppointment] = useState("");   // datetime-local string
   const [notes, setNotes]             = useState("");
   const [loading, setLoading]         = useState(true);
@@ -112,13 +117,89 @@ export default function SessionPlanClient({ patientId, patientAlias }) {
   return (
     <div style={{ padding: "48px", maxWidth: "700px", margin: "0 auto" }}>
       {/* Header */}
-      <div style={{ marginBottom: "40px" }}>
-        <h1 style={{ fontSize: "2rem", fontWeight: 700, letterSpacing: "-0.02em", color: "var(--th-text)", marginBottom: "4px" }}>
-          {patientAlias}
-        </h1>
-        <p style={{ fontSize: "0.875rem", color: "var(--th-text-muted)" }}>
-          Next Session Planning
-        </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
+        <div>
+          <h1 style={{ fontSize: "2rem", fontWeight: 700, letterSpacing: "-0.02em", color: "var(--th-text)", marginBottom: "6px" }}>
+            {patientAlias}
+          </h1>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+            <p style={{ fontSize: "0.875rem", color: "var(--th-text-muted)" }}>
+              Next Session Planning
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Tab bar / Navigation Cards */}
+      <div style={{ display: "flex", gap: "16px", marginBottom: "32px", flexWrap: "wrap" }}>
+        {[
+          { 
+            id: "timeline",
+            label: "Patient Timeline", 
+            desc: "View past check-ins, AI summaries, and your notes",
+            icon: "📋",
+            href: `/dashboard/patient/${patientId}` 
+          },
+          { 
+            id: "session",
+            label: "Session Prep", 
+            desc: "Review insights and generate a plan for the next visit",
+            icon: "📅",
+            href: `/dashboard/patient/${patientId}/session` 
+          },
+        ].map(tab => {
+          const isActive = activeTab === tab.id;
+          return (
+            <Link
+              key={tab.href}
+              href={tab.href}
+              style={{
+                flex: "1 1 250px",
+                display: "flex", alignItems: "flex-start", gap: "16px",
+                padding: "20px", borderRadius: "12px",
+                textDecoration: "none",
+                background: isActive ? "var(--th-accent-soft)" : "var(--th-bg-secondary)",
+                border: `2px solid ${isActive ? "var(--th-accent)" : "var(--th-sidebar-border)"}`,
+                transition: "all 0.2s ease",
+                boxShadow: isActive ? "var(--th-shadow-sm)" : "none",
+                cursor: "pointer",
+              }}
+              onMouseEnter={e => {
+                if (!isActive) {
+                  e.currentTarget.style.borderColor = "var(--th-text-subtle)";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                }
+              }}
+              onMouseLeave={e => {
+                if (!isActive) {
+                  e.currentTarget.style.borderColor = "var(--th-sidebar-border)";
+                  e.currentTarget.style.transform = "none";
+                }
+              }}
+            >
+              <div style={{ fontSize: "1.8rem", opacity: isActive ? 1 : 0.7, filter: isActive ? "none" : "grayscale(100%)" }}>
+                {tab.icon}
+              </div>
+              <div>
+                <div style={{ 
+                  fontSize: "1.05rem", fontWeight: 700, letterSpacing: "-0.01em",
+                  color: isActive ? "var(--th-accent)" : "var(--th-text)",
+                  marginBottom: "4px"
+                }}>
+                  {tab.label}
+                </div>
+                <div style={{ 
+                  fontSize: "0.8125rem", 
+                  color: isActive ? "var(--th-accent)" : "var(--th-text-subtle)",
+                  opacity: isActive ? 0.85 : 1,
+                  lineHeight: 1.5 
+                }}>
+                  {tab.desc}
+                </div>
+              </div>
+            </Link>
+          );
+        })}
       </div>
 
       {loading ? (

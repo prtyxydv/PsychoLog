@@ -237,6 +237,9 @@ export default function PatientTimelineClient({ patient, initialLogs }) {
   const [logs, setLogs]       = useState(initialLogs);
   const [exporting, setExporting] = useState(false);
 
+  const pathname = usePathname();
+  const activeTab = pathname.endsWith("/session") ? "session" : "timeline";
+
   // Mark all logs as read when timeline is opened
   useEffect(() => {
     const hasUnread = logs.some(l => !l.is_read);
@@ -332,27 +335,76 @@ export default function PatientTimelineClient({ patient, initialLogs }) {
         </div>
       </div>
 
-      {/* Tab bar */}
-      <div style={{ display: "flex", gap: "4px", marginBottom: "24px", borderBottom: "1px solid var(--th-sidebar-border)", paddingBottom: "0" }}>
+      {/* Tab bar / Navigation Cards */}
+      <div style={{ display: "flex", gap: "16px", marginBottom: "32px", flexWrap: "wrap" }}>
         {[
-          { label: "📋 Timeline", href: `/dashboard/patient/${patient.id}` },
-          { label: "📅 Next Session", href: `/dashboard/patient/${patient.id}/session` },
-        ].map(tab => (
-          <Link
-            key={tab.href}
-            href={tab.href}
-            style={{
-              padding: "8px 16px", fontSize: "0.82rem", fontWeight: 600,
-              borderRadius: "6px 6px 0 0",
-              textDecoration: "none",
-              color: "var(--th-text-muted)",
-              borderBottom: "2px solid transparent",
-              transition: "all 0.15s",
-            }}
-          >
-            {tab.label}
-          </Link>
-        ))}
+          { 
+            id: "timeline",
+            label: "Patient Timeline", 
+            desc: "View past check-ins, AI summaries, and your notes",
+            icon: "📋",
+            href: `/dashboard/patient/${patient.id}` 
+          },
+          { 
+            id: "session",
+            label: "Session Prep", 
+            desc: "Review insights and generate a plan for the next visit",
+            icon: "📅",
+            href: `/dashboard/patient/${patient.id}/session` 
+          },
+        ].map(tab => {
+          const isActive = activeTab === tab.id;
+          return (
+            <Link
+              key={tab.href}
+              href={tab.href}
+              style={{
+                flex: "1 1 250px",
+                display: "flex", alignItems: "flex-start", gap: "16px",
+                padding: "20px", borderRadius: "12px",
+                textDecoration: "none",
+                background: isActive ? "var(--th-accent-soft)" : "var(--th-bg-secondary)",
+                border: `2px solid ${isActive ? "var(--th-accent)" : "var(--th-sidebar-border)"}`,
+                transition: "all 0.2s ease",
+                boxShadow: isActive ? "var(--th-shadow-sm)" : "none",
+                cursor: "pointer",
+              }}
+              onMouseEnter={e => {
+                if (!isActive) {
+                  e.currentTarget.style.borderColor = "var(--th-text-subtle)";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                }
+              }}
+              onMouseLeave={e => {
+                if (!isActive) {
+                  e.currentTarget.style.borderColor = "var(--th-sidebar-border)";
+                  e.currentTarget.style.transform = "none";
+                }
+              }}
+            >
+              <div style={{ fontSize: "1.8rem", opacity: isActive ? 1 : 0.7, filter: isActive ? "none" : "grayscale(100%)" }}>
+                {tab.icon}
+              </div>
+              <div>
+                <div style={{ 
+                  fontSize: "1.05rem", fontWeight: 700, letterSpacing: "-0.01em",
+                  color: isActive ? "var(--th-accent)" : "var(--th-text)",
+                  marginBottom: "4px"
+                }}>
+                  {tab.label}
+                </div>
+                <div style={{ 
+                  fontSize: "0.8125rem", 
+                  color: isActive ? "var(--th-accent)" : "var(--th-text-subtle)",
+                  opacity: isActive ? 0.85 : 1,
+                  lineHeight: 1.5 
+                }}>
+                  {tab.desc}
+                </div>
+              </div>
+            </Link>
+          );
+        })}
       </div>
 
       {/* Mood Legend */}

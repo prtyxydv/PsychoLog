@@ -4,7 +4,13 @@ import { useEffect, useState } from "react";
 
 export default function DashboardHomeClient({ profile, stats }) {
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const [time, setTime] = useState(new Date());
+
+  useEffect(() => {
+    setMounted(true);
+    const interval = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const firstName = profile?.full_name?.split(" ")[0] ?? "Doctor";
 
@@ -67,17 +73,62 @@ export default function DashboardHomeClient({ profile, stats }) {
           ))}
         </div>
       ) : (
-        /* "Select a patient" prompt */
-        <div
-          className="animate-fade-in"
-          style={{
-            display: "flex", flexDirection: "column", alignItems: "center",
-            justifyContent: "center", minHeight: "300px", textAlign: "center",
-            color: "var(--th-text-subtle)",
-          }}
-        >
-          <div style={{ fontSize: "2rem", marginBottom: "12px" }}>←</div>
-          <p style={{ fontSize: "0.9rem" }}>Select a patient from the sidebar to view their timeline.</p>
+        /* Screensaver / Therapist Overview */
+        <div className="animate-fade-in" style={{
+          display: "flex", flexDirection: "column", gap: "24px",
+          marginTop: "12px", marginBottom: "32px"
+        }}>
+          {/* Clock & Status */}
+          <div style={{ display: "flex", gap: "24px", flexWrap: "wrap" }}>
+            <div className="th-card" style={{ flex: "1 1 300px", padding: "40px 32px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", background: "linear-gradient(135deg, var(--th-accent-soft), transparent)" }}>
+              <div style={{ fontSize: "3.5rem", fontWeight: 800, color: "var(--th-text)", letterSpacing: "-0.04em", fontFamily: "monospace" }}>
+                {time.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+              </div>
+              <p style={{ color: "var(--th-text-muted)", fontSize: "0.95rem", fontWeight: 500, marginTop: "8px" }}>
+                Ready for your next session
+              </p>
+            </div>
+
+            <div className="th-card" style={{ flex: "1 1 300px", padding: "32px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <h3 style={{ fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--th-text-subtle)", fontWeight: 700, marginBottom: "20px" }}>
+                Account Overview
+              </h3>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "16px", borderBottom: "1px solid var(--th-sidebar-border)" }}>
+                <span style={{ color: "var(--th-text-muted)", fontSize: "0.9rem" }}>Member Since</span>
+                <span style={{ color: "var(--th-text)", fontWeight: 600, fontSize: "0.9rem" }}>
+                  {profile?.created_at ? new Date(profile.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "Recently"}
+                </span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "var(--th-text-muted)", fontSize: "0.9rem" }}>Subscription</span>
+                <span style={{ color: "var(--th-accent)", fontWeight: 800, fontSize: "0.9rem", textTransform: "capitalize" }}>
+                  {profile?.subscription_tier || "Free"} Tier
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          {/* To-Do / Notification stub */}
+          <div className="th-card" style={{ padding: "32px" }}>
+             <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--th-text)", marginBottom: "16px" }}>Next Actions</h3>
+             {stats.unread > 0 ? (
+               <div style={{ display: "flex", alignItems: "center", gap: "16px", padding: "20px", background: "rgba(248, 113, 113, 0.08)", borderRadius: "var(--radius-md)", border: "1px solid rgba(248, 113, 113, 0.2)" }}>
+                 <span style={{ fontSize: "1.8rem" }}>📬</span>
+                 <div>
+                   <p style={{ margin: 0, fontWeight: 700, color: "var(--th-text)", fontSize: "1rem" }}>You have {stats.unread} unread patient logs.</p>
+                   <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--th-text-muted)", marginTop: "4px" }}>Review them before your next sessions to stay fully informed.</p>
+                 </div>
+               </div>
+             ) : (
+               <div style={{ display: "flex", alignItems: "center", gap: "16px", padding: "20px", background: "var(--th-bg-secondary)", borderRadius: "var(--radius-md)" }}>
+                 <span style={{ fontSize: "1.8rem" }}>✅</span>
+                 <div>
+                   <p style={{ margin: 0, fontWeight: 700, color: "var(--th-text)", fontSize: "1rem" }}>All caught up!</p>
+                   <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--th-text-muted)", marginTop: "4px" }}>You have no unread check-ins at the moment.</p>
+                 </div>
+               </div>
+             )}
+          </div>
         </div>
       )}
 

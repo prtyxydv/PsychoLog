@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
 export const metadata = {
   title: "PsychoLog — Intelligent Session Documentation for Therapists",
@@ -6,7 +8,14 @@ export const metadata = {
     "Privacy-first middleware that reduces therapist documentation time by auto-generating AI session summaries. Reclaim your focus. Protect your patients.",
 };
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (user) {
+    redirect("/dashboard");
+  }
+
   return (
     <main
       className="min-h-screen therapist-view"

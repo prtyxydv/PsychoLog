@@ -8,7 +8,7 @@ export default async function DashboardPage() {
   // Fetch profile
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name")
+    .select("full_name, created_at, subscription_tier")
     .eq("id", user.id)
     .single();
 

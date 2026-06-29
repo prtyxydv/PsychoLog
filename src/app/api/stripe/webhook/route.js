@@ -2,9 +2,6 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createAdminClient } from "@/lib/supabase/server";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
 export async function POST(req) {
   try {
     const rawBody = await req.text();
@@ -15,6 +12,8 @@ export async function POST(req) {
       return NextResponse.json({ error: "Stripe configuration missing" }, { status: 500 });
     }
 
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
     let event;
 
     try {

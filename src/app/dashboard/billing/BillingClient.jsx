@@ -267,7 +267,9 @@ export default function BillingClient({ profile, userId, statusParam }) {
                 <p style={{ fontSize: "1rem", color: "var(--th-text)", margin: 0, fontWeight: 600 }}>✅ You're on the list!</p>
                 <p style={{ fontSize: "0.85rem", color: "var(--th-text-muted)", marginTop: "8px" }}>We'll review your practice details and an admin will upgrade your account shortly.</p>
               </div>
-                         <p style={{ fontSize: "0.9rem", color: "var(--th-text-muted)", lineHeight: 1.6, marginBottom: "20px" }}>
+            ) : (
+              <>
+                <p style={{ fontSize: "0.9rem", color: "var(--th-text-muted)", lineHeight: 1.6, marginBottom: "20px" }}>
                   To upgrade to a paid plan, please agree to our compliance terms before checking out securely via Razorpay.
                 </p>
                 <form onSubmit={handleCheckoutSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>

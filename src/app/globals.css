@@ -14,13 +14,13 @@
    DESIGN TOKENS — LIGHT MODE BASE
    ============================================================ */
 :root {
-  /* ── Therapist: Landing Page Theme (Light) ── */
-  --th-bg:           #fdfcfb;
-  --th-bg-secondary: #f8f7f5;
-  --th-surface:      #ffffff;
+  /* ── Therapist: Warm Beige Theme (Light) ── */
+  --th-bg:           #f7f5f0;  /* Comfortable beige, not eye-paining */
+  --th-bg-secondary: #f0eee8;
+  --th-surface:      #fcfbfa;  /* Slightly off-white surface */
   --th-border:       #e8e4df;
   --th-border-soft:  #f0ece8;
-  --th-text:         #1a1714;
+  --th-text:         #2a2623;  /* Softer than pure black */
   --th-text-muted:   #6b6560;
   --th-text-subtle:  #a39d97;
   --th-accent:       #0d9488;
@@ -163,8 +163,8 @@ html {
 body {
   min-height: 100%;
   line-height: 1.6;
-  background: #fdfcfb;
-  color: #1a1714;
+  background: #f7f5f0;
+  color: #2a2623;
   font-family: "Inter", system-ui, sans-serif;
 }
 

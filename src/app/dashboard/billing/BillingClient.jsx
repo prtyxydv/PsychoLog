@@ -32,6 +32,36 @@ const PLANS = [
     ],
     cta: "Upgrade Now",
   },
+  {
+    name: "Pro",
+    price: "$29/month",
+    badge: "WAITLIST",
+    badgeColor: "#8b5cf6",
+    desc: "For growing practices that need more capacity and deeper insights.",
+    features: [
+      "Up to 50 active patients",
+      "Everything in Basic",
+      "Priority AI processing",
+      "Advanced mood analytics",
+      "Educational Use Only (No PHI)",
+    ],
+    cta: "Upgrade Now",
+  },
+  {
+    name: "Elite",
+    price: "$50/month",
+    badge: "WAITLIST",
+    badgeColor: "#d946ef",
+    desc: "For full-time professionals handling high-volume caseloads.",
+    features: [
+      "Unlimited active patients",
+      "Everything in Pro",
+      "Dedicated account manager",
+      "Early access to new features",
+      "Educational Use Only (No PHI)",
+    ],
+    cta: "Upgrade Now",
+  }
 ];
 
 export default function BillingClient({ profile, statusParam }) {
@@ -64,8 +94,9 @@ export default function BillingClient({ profile, statusParam }) {
         throw new Error("User ID not found. Please log in again.");
       }
 
-      // Using the single checkout page provided by the user, appending custom data for webhooks
-      const checkoutUrl = `https://psychologoff.lemonsqueezy.com/checkout/buy/a3344f5d-6d3b-4b24-8442-9e9b15cf0618?checkout[custom][user_id]=${userId}`;
+      // Using the checkout page provided by the user, appending custom data for webhooks
+      // Adding ?currency=USD to try and force USD, though Lemon Squeezy relies on store settings for this.
+      const checkoutUrl = `https://psychologoff.lemonsqueezy.com/checkout/buy/a3344f5d-6d3b-4b24-8442-9e9b15cf0618?checkout[custom][user_id]=${userId}&checkout[custom][plan]=${selectedPlan}&currency=USD`;
       
       // Redirect to Lemon Squeezy Checkout
       window.location.href = checkoutUrl;

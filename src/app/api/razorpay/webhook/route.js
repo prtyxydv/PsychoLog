@@ -6,12 +6,9 @@ export async function POST(req) {
   try {
     const rawBody = await req.text();
     const signature = req.headers.get("x-razorpay-signature");
-    const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
-
-    if (!secret) {
-      console.error("Missing RAZORPAY_WEBHOOK_SECRET environment variable");
-      return NextResponse.json({ error: "Webhook secret missing" }, { status: 500 });
-    }
+    
+    // Read from environment variable or use the custom secret from dashboard as fallback
+    const secret = process.env.RAZORPAY_WEBHOOK_SECRET || "9653580633@Psy";
 
     // Verify webhook signature
     const expectedSig = crypto

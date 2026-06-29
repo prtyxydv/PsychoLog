@@ -286,10 +286,16 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p style={{ textAlign: "center", fontSize: "0.8125rem", color: "var(--th-text-subtle)", marginTop: "24px" }}>
+          <p style={{ textAlign: "center", fontSize: "0.8125rem", color: "var(--th-text-subtle)", marginTop: "20px" }}>
             No account?{" "}
             <Link href="/auth/signup" style={{ color: "var(--th-accent)", fontWeight: 600, textDecoration: "none" }}>
               Create one →
+            </Link>
+          </p>
+          <p style={{ textAlign: "center", fontSize: "0.8125rem", color: "var(--th-text-subtle)", marginTop: "8px" }}>
+            Want early access?{" "}
+            <Link href="/waitlist" style={{ color: "var(--th-accent)", fontWeight: 600, textDecoration: "none" }}>
+              Join the waitlist →
             </Link>
           </p>
 

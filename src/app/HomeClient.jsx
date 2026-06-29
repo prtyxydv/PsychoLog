@@ -397,9 +397,9 @@ export default function HomeClient({ profile, unreadPatients, upcomingSessions, 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
                 {[
                   { label: "All Patients", href: "/dashboard",          icon: "👥",  color: C.cyan,   dim: C.cyanDim,   border: C.cyanBorder },
+                  { label: "My Notes",     href: "/dashboard/notes",    icon: "📝",  color: C.cyan,   dim: C.cyanDim,   border: C.cyanBorder },
                   { label: "Billing",      href: "/dashboard/billing",  icon: "💳",  color: C.orange, dim: C.orangeDim, border: C.orangeBorder },
                   { label: "Settings",     href: "/dashboard/settings", icon: "⚙️",  color: "var(--th-text-muted)",  dim: "var(--th-bg-secondary)", border: "var(--th-border)" },
-                  { label: "Waitlist",     href: "/waitlist",           icon: "📋",  color: C.green,  dim: "rgba(74,222,128,0.08)", border: "rgba(74,222,128,0.2)" },
                 ].map(a => (
                   <Link key={a.label} href={a.href} style={{
                     textDecoration: "none", padding: "13px 14px", borderRadius: "11px",

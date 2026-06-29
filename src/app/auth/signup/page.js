@@ -307,6 +307,12 @@ export default function SignupPage() {
               Sign in →
             </Link>
           </p>
+          <p style={{ textAlign: "center", fontSize: "0.8125rem", color: "var(--th-text-subtle)", marginTop: "8px" }}>
+            Not ready to sign up?{" "}
+            <Link href="/waitlist" style={{ color: "var(--th-accent)", fontWeight: 600, textDecoration: "none" }}>
+              Join the waitlist →
+            </Link>
+          </p>
         </div>
       </div>
 

@@ -206,6 +206,16 @@ html {
 body {
   min-height: 100%;
   line-height: 1.6;
+  background: #fdfcfb;
+  color: #1a1714;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+/* Dark mode body */
+.dark body,
+.dark {
+  background: #141210;
+  color: #f5f4f2;
 }
 
 img, video {

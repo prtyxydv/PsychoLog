@@ -40,8 +40,8 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#FFFBF5" },
-    { media: "(prefers-color-scheme: dark)",  color: "#1C1917" },
+    { media: "(prefers-color-scheme: light)", color: "#fdfcfb" },
+    { media: "(prefers-color-scheme: dark)",  color: "#141210" },
   ],
 };
 
@@ -52,7 +52,19 @@ export default function RootLayout({ children }) {
       className={`${inter.variable} ${dmSans.variable} h-full`}
       suppressHydrationWarning
     >
-      <body className="min-h-full antialiased">
+      <head>
+        {/* Blocking script: apply saved theme BEFORE first paint — prevents flash */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function(){
+            try {
+              var t = localStorage.getItem('psycholog-theme');
+              if (t === 'dark') document.documentElement.classList.add('dark');
+              // default is light — no class needed
+            } catch(e) {}
+          })();
+        `}} />
+      </head>
+      <body className="min-h-full antialiased" style={{ background: '#fdfcfb' }}>
         {children}
       </body>
     </html>

@@ -33,19 +33,24 @@ export async function proxy(request) {
 
   const { pathname } = request.nextUrl;
 
-  // Protected dashboard routes — redirect to login if not authenticated
-  if (pathname.startsWith("/dashboard") && !user) {
+  // Never intercept the OAuth callback page — it needs to run to set the session
+  if (pathname.startsWith("/auth/callback")) {
+    return supabaseResponse;
+  }
+
+  // Protected routes — redirect to login if not authenticated
+  if ((pathname === "/" || pathname.startsWith("/dashboard")) && !user) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/auth/login";
     loginUrl.searchParams.set("redirectTo", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Redirect authenticated users away from auth pages
+  // Redirect authenticated users away from auth pages → screensaver home
   if (pathname.startsWith("/auth") && user) {
-    const dashboardUrl = request.nextUrl.clone();
-    dashboardUrl.pathname = "/dashboard";
-    return NextResponse.redirect(dashboardUrl);
+    const homeUrl = request.nextUrl.clone();
+    homeUrl.pathname = "/";
+    return NextResponse.redirect(homeUrl);
   }
 
   return supabaseResponse;

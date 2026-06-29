@@ -93,11 +93,20 @@ export default function BillingClient({ profile, userId, statusParam }) {
         throw new Error("User ID not found. Please log out and log back in.");
       }
 
-      // Using the checkout page provided by the user, appending custom data for webhooks
-      // Adding ?currency=USD to try and force USD, though Lemon Squeezy relies on store settings for this.
-      const checkoutUrl = `https://psychologoff.lemonsqueezy.com/checkout/buy/a3344f5d-6d3b-4b24-8442-9e9b15cf0618?checkout[custom][user_id]=${userId}&checkout[custom][plan]=${selectedPlan}&currency=USD`;
+      const paymentLinks = {
+        basic: process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK_BASIC || "https://buy.stripe.com/test_basic_placeholder",
+        pro: process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK_PRO || "https://buy.stripe.com/test_pro_placeholder",
+        elite: process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK_ELITE || "https://buy.stripe.com/test_elite_placeholder",
+      };
+
+      const link = paymentLinks[selectedPlan];
+      if (!link || link.includes("placeholder")) {
+        throw new Error("Stripe checkout link not configured. Please contact the administrator.");
+      }
+
+      const checkoutUrl = `${link}?client_reference_id=${userId}&prefilled_email=${encodeURIComponent(profile?.email || "")}`;
       
-      // Redirect to Lemon Squeezy Checkout
+      // Redirect to Stripe Checkout
       window.location.href = checkoutUrl;
     } catch (err) {
       alert(err.message);
@@ -207,7 +216,7 @@ export default function BillingClient({ profile, userId, statusParam }) {
       </div>
 
       <p style={{ marginTop: "24px", fontSize: "0.75rem", color: "var(--th-text-subtle)", lineHeight: 1.6 }}>
-        Payments are securely processed via Lemon Squeezy. By upgrading, you agree to our Terms of Service.
+        Payments are securely processed via Stripe. By upgrading, you agree to our Terms of Service.
       </p>
 
       {/* Waitlist & Legal Modal */}

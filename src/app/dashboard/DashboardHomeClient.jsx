@@ -70,7 +70,6 @@ export default function DashboardHomeClient({ profile, stats }) {
           ))}
         </div>
       ) : (
-      ) : (
         /* "Select a patient" prompt */
         <div
           className="animate-fade-in"

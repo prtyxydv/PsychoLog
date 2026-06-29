@@ -84,7 +84,6 @@ export default function HomeClient({ profile, unreadPatients, upcomingSessions, 
   const [mounted, setMounted] = useState(false);
   const [greeting, setGreeting] = useState({ text: "Good morning", emoji: "☀️" });
   const [isDark, setIsDark] = useState(false);
-  const canvasRef = useRef(null);
 
   // Sync theme status on mount
   useEffect(() => {
@@ -97,42 +96,6 @@ export default function HomeClient({ profile, unreadPatients, upcomingSessions, 
     if (h < 12)      setGreeting({ text: "Good morning",   emoji: "☀️" });
     else if (h < 17) setGreeting({ text: "Good afternoon", emoji: "🌤️" });
     else             setGreeting({ text: "Good evening",   emoji: "🌙" });
-
-    // Animated orbs — cyan + orange tones
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    let raf;
-    let W = (canvas.width = window.innerWidth);
-    let H = (canvas.height = window.innerHeight);
-
-    const orbs = [
-      { x: W * 0.1,  y: H * 0.25, r: 350, dx: 0.15,  dy: 0.1,   h: 188, s: 90, l: 55 }, // cyan
-      { x: W * 0.9,  y: H * 0.7,  r: 300, dx: -0.12, dy: 0.08,  h: 24,  s: 90, l: 58 }, // orange
-      { x: W * 0.55, y: H * 0.9,  r: 380, dx: 0.08,  dy: -0.1,  h: 195, s: 80, l: 50 }, // teal
-      { x: W * 0.75, y: H * 0.1,  r: 260, dx: -0.1,  dy: 0.12,  h: 20,  s: 85, l: 55 }, // amber
-    ];
-
-    function draw() {
-      ctx.clearRect(0, 0, W, H);
-      const isCurrentlyDark = document.documentElement.classList.contains("dark");
-      const orbOpacity = isCurrentlyDark ? 0.07 : 0.02;
-
-      orbs.forEach(o => {
-        o.x += o.dx; o.y += o.dy;
-        if (o.x < -o.r) o.x = W + o.r; if (o.x > W + o.r) o.x = -o.r;
-        if (o.y < -o.r) o.y = H + o.r; if (o.y > H + o.r) o.y = -o.r;
-        const g = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.r);
-        g.addColorStop(0, `hsla(${o.h},${o.s}%,${o.l}%,${orbOpacity})`);
-        g.addColorStop(1, `hsla(${o.h},${o.s}%,${o.l}%,0)`);
-        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2); ctx.fill();
-      });
-      raf = requestAnimationFrame(draw);
-    }
-    draw();
-    const onResize = () => { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; };
-    window.addEventListener("resize", onResize);
-    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", onResize); };
   }, []);
 
   const toggleTheme = () => {
@@ -165,8 +128,37 @@ export default function HomeClient({ profile, unreadPatients, upcomingSessions, 
       overflow: "hidden",
       transition: "background 0.3s ease, color 0.3s ease"
     }}>
-      {/* Orb canvas */}
-      <canvas ref={canvasRef} style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }} />
+      {/* GPU-Accelerated Glowing Orbs (CSS animated, 0% CPU overhead) */}
+      <div style={{ position: "fixed", inset: 0, overflow: "hidden", zIndex: 0, pointerEvents: "none" }}>
+        <div className="float-orb float-cyan" style={{
+          position: "absolute", top: "15%", left: "10%",
+          width: "400px", height: "400px", borderRadius: "50%",
+          background: isDark ? "rgba(34,211,238,0.06)" : "rgba(34,211,238,0.022)",
+          filter: "blur(110px)",
+          animation: "float-cyan 28s infinite alternate ease-in-out",
+        }} />
+        <div className="float-orb float-orange" style={{
+          position: "absolute", bottom: "10%", right: "15%",
+          width: "350px", height: "350px", borderRadius: "50%",
+          background: isDark ? "rgba(251,146,60,0.05)" : "rgba(251,146,60,0.018)",
+          filter: "blur(120px)",
+          animation: "float-orange 32s infinite alternate ease-in-out",
+        }} />
+        <div className="float-orb float-teal" style={{
+          position: "absolute", bottom: "5%", left: "30%",
+          width: "450px", height: "450px", borderRadius: "50%",
+          background: isDark ? "rgba(34,211,238,0.05)" : "rgba(34,211,238,0.018)",
+          filter: "blur(130px)",
+          animation: "float-teal 36s infinite alternate ease-in-out",
+        }} />
+        <div className="float-orb float-amber" style={{
+          position: "absolute", top: "10%", right: "20%",
+          width: "300px", height: "300px", borderRadius: "50%",
+          background: isDark ? "rgba(251,146,60,0.05)" : "rgba(251,146,60,0.018)",
+          filter: "blur(100px)",
+          animation: "float-amber 24s infinite alternate ease-in-out",
+        }} />
+      </div>
 
       {/* Subtle dot grid */}
       <div style={{
@@ -441,6 +433,26 @@ export default function HomeClient({ profile, unreadPatients, upcomingSessions, 
         @keyframes fadeUp {
           from { opacity:0; transform:translateY(20px); }
           to   { opacity:1; transform:translateY(0); }
+        }
+        @keyframes float-cyan {
+          0% { transform: translate(0px, 0px) scale(1); }
+          50% { transform: translate(120px, 70px) scale(1.1); }
+          100% { transform: translate(-50px, 120px) scale(0.95); }
+        }
+        @keyframes float-orange {
+          0% { transform: translate(0px, 0px) scale(1); }
+          50% { transform: translate(-100px, -80px) scale(0.9); }
+          100% { transform: translate(80px, -140px) scale(1.05); }
+        }
+        @keyframes float-teal {
+          0% { transform: translate(0px, 0px) scale(1); }
+          50% { transform: translate(70px, -110px) scale(1.05); }
+          100% { transform: translate(-90px, 40px) scale(0.9); }
+        }
+        @keyframes float-amber {
+          0% { transform: translate(0px, 0px) scale(1); }
+          50% { transform: translate(-80px, 90px) scale(1.1); }
+          100% { transform: translate(110px, -60px) scale(0.95); }
         }
         @media (max-width:900px) {
           .home-grid { grid-template-columns:1fr !important; }

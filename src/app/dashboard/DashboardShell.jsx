@@ -7,22 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import InviteModal from "@/components/ui/InviteModal";
 import { formatRelativeTime } from "@/lib/utils";
 
-/* ── Inline SVG logo — always renders, no /public dependency ── */
-function PsychologLogo({ size = 22 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: "block" }}>
-      <path d="M130 60 C130 35 112 18 90 18 C68 18 50 35 48 58 C46 78 54 95 62 108 C66 115 68 122 68 130 L68 148 C68 152 71 155 75 155 L105 155 C109 155 112 152 112 148 L112 142 C120 138 128 130 132 120 C136 110 135 85 130 60 Z" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M72 75 C72 68 78 62 86 64 C90 65 93 69 92 74 C91 78 87 80 83 79 C79 78 76 74 78 70" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
-      <path d="M86 64 C90 58 98 57 103 62 C107 66 107 72 103 76 C99 80 93 80 90 76" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
-      <path d="M103 62 C109 58 116 60 118 67 C120 73 116 79 110 80 C106 81 103 78 103 74" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
-      <path d="M78 80 C74 85 74 92 79 96 C84 100 91 99 94 94 C97 89 95 83 90 80" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
-      <path d="M94 94 C96 99 102 102 108 100 C114 97 116 91 113 86 C110 81 104 80 100 83" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
-      <path d="M113 86 C118 84 122 79 121 73" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
-      <path d="M48 80 C42 82 38 88 39 95 C40 102 46 106 52 104" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" fill="none"/>
-    </svg>
-  );
-}
-
+import PsychologLogo from "@/components/ui/PsychologLogo";
 export default function DashboardShell({ profile, initialPatients = [], children }) {
   const [showInvite, setShowInvite]   = useState(false);
   const [patients, setPatients]       = useState(initialPatients);

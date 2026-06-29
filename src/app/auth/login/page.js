@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import PsychologLogo from "@/components/ui/PsychologLogo";
 
 export default function LoginPage() {
   const router   = useRouter();
@@ -14,6 +14,22 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState("");
+  
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("psycholog-theme");
+    const dark = stored === "dark";
+    setIsDark(dark);
+    if (dark) document.documentElement.classList.add("dark");
+    else document.documentElement.classList.remove("dark");
+  }, []);
+
+  useEffect(() => {
+    if (isDark) document.documentElement.classList.add("dark");
+    else document.documentElement.classList.remove("dark");
+    localStorage.setItem("psycholog-theme", isDark ? "dark" : "light");
+  }, [isDark]);
 
   async function handleEmailLogin(e) {
     e.preventDefault();
@@ -46,7 +62,7 @@ export default function LoginPage() {
       minHeight: "100vh",
       display: "flex",
       fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
-      background: "#fdfcfb",
+      background: "var(--th-bg)",
     }}>
       {/* ── Left panel: branding ── */}
       <div style={{
@@ -81,8 +97,9 @@ export default function LoginPage() {
               background: "rgba(255,255,255,0.15)",
               display: "flex", alignItems: "center", justifyContent: "center",
               backdropFilter: "blur(8px)",
+              color: "white"
             }}>
-              <Image src="/logo.svg" alt="PsychoLog" width={30} height={30} style={{ filter: "brightness(0) invert(1)" }} />
+              <PsychologLogo size={30} />
             </div>
             <span style={{ fontWeight: 800, fontSize: "1.3rem", letterSpacing: "-0.03em" }}>PsychoLog</span>
           </div>
@@ -112,8 +129,25 @@ export default function LoginPage() {
       <div style={{
         flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
         padding: "40px 24px",
-        background: "#fdfcfb",
+        background: "var(--th-bg)",
+        position: "relative"
       }}>
+        {/* Theme Toggle */}
+        <button
+          onClick={() => setIsDark(!isDark)}
+          style={{
+            position: "absolute", top: "24px", right: "24px",
+            background: "var(--th-bg-secondary)", border: "1px solid var(--th-border)",
+            borderRadius: "50%", width: "40px", height: "40px",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", fontSize: "1.2rem",
+            boxShadow: "var(--th-shadow-sm)", transition: "all 0.15s"
+          }}
+          title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+        >
+          {isDark ? "☀️" : "🌙"}
+        </button>
+
         <div style={{ width: "100%", maxWidth: "400px" }}>
           {/* Mobile logo (shown only when left panel is hidden) */}
           <div className="auth-mobile-logo" style={{ textAlign: "center", marginBottom: "36px" }}>
@@ -126,17 +160,18 @@ export default function LoginPage() {
                 background: "linear-gradient(135deg, #0d9488, #2dd4bf)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 boxShadow: "0 4px 12px rgba(13,148,136,0.3)",
+                color: "white"
               }}>
-                <Image src="/logo.svg" alt="PsychoLog" width={26} height={26} style={{ filter: "brightness(0) invert(1)" }} />
+                <PsychologLogo size={26} />
               </div>
-              <span style={{ fontWeight: 800, fontSize: "1.1rem", letterSpacing: "-0.025em", color: "#1a1714" }}>PsychoLog</span>
+              <span style={{ fontWeight: 800, fontSize: "1.1rem", letterSpacing: "-0.025em", color: "var(--th-text)" }}>PsychoLog</span>
             </div>
           </div>
 
-          <h1 style={{ fontSize: "1.65rem", fontWeight: 800, letterSpacing: "-0.03em", color: "#1a1714", marginBottom: "6px" }}>
+          <h1 style={{ fontSize: "1.65rem", fontWeight: 800, letterSpacing: "-0.03em", color: "var(--th-text)", marginBottom: "6px" }}>
             Welcome back
           </h1>
-          <p style={{ fontSize: "0.9rem", color: "#6b6560", marginBottom: "28px" }}>
+          <p style={{ fontSize: "0.9rem", color: "var(--th-text-subtle)", marginBottom: "28px" }}>
             Sign in to your therapist account
           </p>
 
@@ -148,16 +183,16 @@ export default function LoginPage() {
             style={{
               width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
               gap: "10px", padding: "11px 20px",
-              background: "#fff", border: "1.5px solid #e8e4df",
+              background: "var(--th-bg)", border: "1.5px solid var(--th-border)",
               borderRadius: "10px", fontSize: "0.875rem", fontWeight: 600,
-              color: "#1a1714", cursor: loading ? "not-allowed" : "pointer",
+              color: "var(--th-text)", cursor: loading ? "not-allowed" : "pointer",
               opacity: loading ? 0.6 : 1,
-              transition: "border-color 0.15s, box-shadow 0.15s",
+              transition: "border-color 0.15s, box-shadow 0.15s, background 0.15s",
               marginBottom: "20px", fontFamily: "Inter, sans-serif",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+              boxShadow: "var(--th-shadow-sm)",
             }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = "#0d9488"; e.currentTarget.style.boxShadow = "0 0 0 3px #f0fdf9"; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = "#e8e4df"; e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.06)"; }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--th-accent)"; e.currentTarget.style.background = "var(--th-bg-secondary)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--th-border)"; e.currentTarget.style.background = "var(--th-bg)"; }}
           >
             <svg width="18" height="18" viewBox="0 0 18 18">
               <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
@@ -170,16 +205,16 @@ export default function LoginPage() {
 
           {/* Divider */}
           <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
-            <div style={{ flex: 1, height: "1px", background: "#e8e4df" }} />
-            <span style={{ fontSize: "0.75rem", color: "#a39d97", fontWeight: 500 }}>or</span>
-            <div style={{ flex: 1, height: "1px", background: "#e8e4df" }} />
+            <div style={{ flex: 1, height: "1px", background: "var(--th-border)" }} />
+            <span style={{ fontSize: "0.75rem", color: "var(--th-text-subtle)", fontWeight: 500 }}>or</span>
+            <div style={{ flex: 1, height: "1px", background: "var(--th-border)" }} />
           </div>
 
           {/* Error */}
           {error && (
             <div style={{
-              padding: "10px 14px", background: "#FEF2F2", border: "1px solid #FECACA",
-              borderRadius: "8px", fontSize: "0.8125rem", color: "#DC2626", marginBottom: "16px",
+              padding: "10px 14px", background: "rgba(220,38,38,0.1)", border: "1px solid rgba(220,38,38,0.3)",
+              borderRadius: "8px", fontSize: "0.8125rem", color: "#ef4444", marginBottom: "16px",
             }}>
               {error}
             </div>
@@ -188,7 +223,7 @@ export default function LoginPage() {
           {/* Form */}
           <form onSubmit={handleEmailLogin} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             <div>
-              <label htmlFor="login-email" style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: "#1a1714", marginBottom: "6px" }}>
+              <label htmlFor="login-email" style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: "var(--th-text)", marginBottom: "6px" }}>
                 Email address
               </label>
               <input
@@ -197,22 +232,22 @@ export default function LoginPage() {
                 placeholder="you@clinic.com"
                 style={{
                   width: "100%", padding: "10px 13px",
-                  background: "#f8f7f5", border: "1.5px solid #e8e4df",
-                  borderRadius: "8px", fontSize: "0.875rem", color: "#1a1714",
+                  background: "var(--th-bg-secondary)", border: "1.5px solid var(--th-border)",
+                  borderRadius: "8px", fontSize: "0.875rem", color: "var(--th-text)",
                   outline: "none", fontFamily: "Inter, sans-serif",
-                  transition: "border-color 0.15s, box-shadow 0.15s", boxSizing: "border-box",
+                  transition: "border-color 0.15s, box-shadow 0.15s, background 0.15s", boxSizing: "border-box",
                 }}
-                onFocus={e => { e.target.style.borderColor = "#0d9488"; e.target.style.boxShadow = "0 0 0 3px #f0fdf9"; e.target.style.background = "#fff"; }}
-                onBlur={e => { e.target.style.borderColor = "#e8e4df"; e.target.style.boxShadow = "none"; e.target.style.background = "#f8f7f5"; }}
+                onFocus={e => { e.target.style.borderColor = "var(--th-accent)"; e.target.style.boxShadow = "0 0 0 3px var(--th-accent-soft)"; e.target.style.background = "var(--th-bg)"; }}
+                onBlur={e => { e.target.style.borderColor = "var(--th-border)"; e.target.style.boxShadow = "none"; e.target.style.background = "var(--th-bg-secondary)"; }}
               />
             </div>
 
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                <label htmlFor="login-password" style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#1a1714" }}>
+                <label htmlFor="login-password" style={{ fontSize: "0.8125rem", fontWeight: 600, color: "var(--th-text)" }}>
                   Password
                 </label>
-                <button type="button" style={{ fontSize: "0.75rem", color: "#0d9488", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "Inter, sans-serif", fontWeight: 500 }}>
+                <button type="button" style={{ fontSize: "0.75rem", color: "var(--th-accent)", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "Inter, sans-serif", fontWeight: 500 }}>
                   Forgot password?
                 </button>
               </div>
@@ -222,13 +257,13 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 style={{
                   width: "100%", padding: "10px 13px",
-                  background: "#f8f7f5", border: "1.5px solid #e8e4df",
-                  borderRadius: "8px", fontSize: "0.875rem", color: "#1a1714",
+                  background: "var(--th-bg-secondary)", border: "1.5px solid var(--th-border)",
+                  borderRadius: "8px", fontSize: "0.875rem", color: "var(--th-text)",
                   outline: "none", fontFamily: "Inter, sans-serif",
-                  transition: "border-color 0.15s, box-shadow 0.15s", boxSizing: "border-box",
+                  transition: "border-color 0.15s, box-shadow 0.15s, background 0.15s", boxSizing: "border-box",
                 }}
-                onFocus={e => { e.target.style.borderColor = "#0d9488"; e.target.style.boxShadow = "0 0 0 3px #f0fdf9"; e.target.style.background = "#fff"; }}
-                onBlur={e => { e.target.style.borderColor = "#e8e4df"; e.target.style.boxShadow = "none"; e.target.style.background = "#f8f7f5"; }}
+                onFocus={e => { e.target.style.borderColor = "var(--th-accent)"; e.target.style.boxShadow = "0 0 0 3px var(--th-accent-soft)"; e.target.style.background = "var(--th-bg)"; }}
+                onBlur={e => { e.target.style.borderColor = "var(--th-border)"; e.target.style.boxShadow = "none"; e.target.style.background = "var(--th-bg-secondary)"; }}
               />
             </div>
 
@@ -236,7 +271,7 @@ export default function LoginPage() {
               id="btn-email-login" type="submit" disabled={loading}
               style={{
                 width: "100%", padding: "12px",
-                background: loading ? "#6b6560" : "#0d9488",
+                background: loading ? "var(--th-border)" : "#0d9488",
                 color: "white", border: "none", borderRadius: "10px",
                 fontSize: "0.9rem", fontWeight: 700,
                 cursor: loading ? "not-allowed" : "pointer",
@@ -252,14 +287,14 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p style={{ textAlign: "center", fontSize: "0.8125rem", color: "#6b6560", marginTop: "24px" }}>
+          <p style={{ textAlign: "center", fontSize: "0.8125rem", color: "var(--th-text-subtle)", marginTop: "24px" }}>
             No account?{" "}
-            <Link href="/auth/signup" style={{ color: "#0d9488", fontWeight: 600, textDecoration: "none" }}>
+            <Link href="/auth/signup" style={{ color: "var(--th-accent)", fontWeight: 600, textDecoration: "none" }}>
               Create one →
             </Link>
           </p>
 
-          <p style={{ textAlign: "center", fontSize: "0.72rem", color: "#a39d97", marginTop: "32px" }}>
+          <p style={{ textAlign: "center", fontSize: "0.72rem", color: "var(--th-text-muted)", marginTop: "32px" }}>
             For licensed mental health professionals only.
           </p>
         </div>

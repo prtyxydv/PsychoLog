@@ -64,7 +64,7 @@ export default function RootLayout({ children }) {
           })();
         `}} />
       </head>
-      <body className="min-h-full antialiased" style={{ background: '#fdfcfb' }}>
+      <body className="min-h-full antialiased">
         {children}
       </body>
     </html>

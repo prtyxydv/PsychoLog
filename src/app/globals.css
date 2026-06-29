@@ -331,7 +331,7 @@ img, video {
 }
 
 @media (prefers-color-scheme: dark) {
-  .glass-strong {
+  :not(.patient-view) .glass-strong {
     background: rgba(15, 23, 42, 0.72);
     border-color: rgba(148, 163, 184, 0.18);
   }

@@ -124,6 +124,11 @@ function LogPageInner() {
   const [consentChecks, setChecks]  = useState({ notTherapy: false, dataUse: false, voluntary: false });
 
   useEffect(() => {
+    // Force patient portal to always load in pristine light mode (Ocean Calm)
+    document.documentElement.classList.remove("dark");
+  }, []);
+
+  useEffect(() => {
     if (!token) { setPhase("invalid"); return; }
 
     const stored = sessionStorage.getItem(`pl_session_${token}`);

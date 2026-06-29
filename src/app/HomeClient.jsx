@@ -39,15 +39,12 @@ function Clock({ isDark }) {
   
   return (
     <div style={{ textAlign: "right" }}>
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "flex-end", gap: "4px" }}>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "flex-end", gap: "2px", lineHeight: 1 }}>
         <span style={{
           fontSize: "clamp(3.5rem,8vw,6.5rem)", fontWeight: 900,
           letterSpacing: "-0.06em", lineHeight: 1,
           fontVariantNumeric: "tabular-nums",
-          background: isDark
-            ? `linear-gradient(135deg, ${C.white} 40%, ${C.cyan})`
-            : `linear-gradient(135deg, #1e293b 40%, ${C.cyan})`,
-          WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+          color: "var(--th-text)",
         }}>{h}:{m}</span>
         <div style={{ display: "flex", flexDirection: "column", paddingTop: "clamp(8px,1.5vw,14px)", gap: "3px" }}>
           <span style={{ fontSize: "clamp(0.9rem,1.8vw,1.3rem)", fontWeight: 800, color: C.orange }}>{ap}</span>
@@ -244,11 +241,7 @@ export default function HomeClient({ profile, unreadPatients, upcomingSessions, 
             <h1 style={{ fontSize: "clamp(2rem,4vw,3rem)", fontWeight: 900, letterSpacing: "-0.05em", lineHeight: 1.05, margin: "0 0 14px" }}>
               Welcome back,<br />
               <span style={{
-                background: isDark
-                  ? `linear-gradient(135deg, ${C.white} 30%, ${C.cyan})`
-                  : `linear-gradient(135deg, #1e293b 30%, ${C.cyan})`,
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent"
+                color: isDark ? C.cyan : "#0891b2"
               }}>
                 Dr. {firstName}.
               </span>

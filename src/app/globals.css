@@ -87,21 +87,21 @@
 
 /* ── Manual dark mode override via .dark class ── */
 .dark {
-  --th-bg:           #141210;
-  --th-bg-secondary: #1c1a18;
-  --th-surface:      #232120;
-  --th-border:       #2e2b28;
-  --th-border-soft:  #252320;
+  --th-bg:           #0a0a0a;
+  --th-bg-secondary: #121212;
+  --th-surface:      #1a1a1a;
+  --th-border:       #27272a;
+  --th-border-soft:  #1f1f22;
   --th-text:         #f5f4f2;
   --th-text-muted:   #a39d97;
   --th-text-subtle:  #6b6560;
   --th-accent:       #fbbf24; /* Warm premium gold */
   --th-accent-soft:  rgba(245,158,11,0.15);
   --th-accent-hover: #f59e0b;
-  --th-sidebar:      #1a1816;
-  --th-sidebar-border: #2e2b28;
-  --th-card:         #232120;
-  --th-card-hover:   #2a2826;
+  --th-sidebar:      #0f0f0f;
+  --th-sidebar-border: #27272a;
+  --th-card:         #141414;
+  --th-card-hover:   #1f1f22;
   --th-unread:       #f87171;
 }
 

@@ -15,11 +15,11 @@ export default async function BillingPage({ searchParams }) {
   // Fetch subscription status from the profile
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, email, subscription_status, verification_status, trial_ends_at")
+    .select("id, full_name, email, plan_type, subscription_status, verification_status, trial_ends_at")
     .eq("id", user.id)
     .single();
 
   const status = (await searchParams)?.status ?? null;
 
-  return <BillingClient profile={profile} statusParam={status} />;
+  return <BillingClient profile={profile} userId={user.id} statusParam={status} />;
 }

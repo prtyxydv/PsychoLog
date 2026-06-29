@@ -64,7 +64,7 @@ const PLANS = [
   }
 ];
 
-export default function BillingClient({ profile, statusParam }) {
+export default function BillingClient({ profile, userId, statusParam }) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(
     statusParam === "success"
@@ -89,9 +89,8 @@ export default function BillingClient({ profile, statusParam }) {
     setLoading(true);
     
     try {
-      const userId = profile?.id;
       if (!userId) {
-        throw new Error("User ID not found. Please log in again.");
+        throw new Error("User ID not found. Please log out and log back in.");
       }
 
       // Using the checkout page provided by the user, appending custom data for webhooks
@@ -106,6 +105,7 @@ export default function BillingClient({ profile, statusParam }) {
     }
   }
 
+  const currentPlan = profile?.plan_type ?? "free";
   const subStatus = profile?.subscription_status ?? "free";
   const verificationStatus = profile?.verification_status ?? "pending";
 
@@ -141,7 +141,9 @@ export default function BillingClient({ profile, statusParam }) {
         </div>
         <div>
           <p style={{ fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--th-text-subtle)", marginBottom: "4px" }}>Plan</p>
-          <p style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--th-text)", textTransform: "capitalize" }}>{subStatus === "free" ? "Free Beta" : subStatus}</p>
+          <p style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--th-accent)", textTransform: "capitalize" }}>
+            {currentPlan === "free" ? "Free Beta" : currentPlan}
+          </p>
         </div>
         <div>
           <p style={{ fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--th-text-subtle)", marginBottom: "4px" }}>Verification</p>
@@ -162,8 +164,9 @@ export default function BillingClient({ profile, statusParam }) {
             className="th-card"
             style={{
               padding: "28px",
-              border: plan.name === "Pro" ? "1px solid var(--th-accent)" : "1px solid var(--th-sidebar-border)",
+              border: plan.name.toLowerCase() === currentPlan ? "1px solid var(--th-accent)" : "1px solid var(--th-sidebar-border)",
               position: "relative",
+              background: plan.name.toLowerCase() === currentPlan ? "var(--th-accent-soft)" : undefined,
             }}
           >
             {/* Badge */}

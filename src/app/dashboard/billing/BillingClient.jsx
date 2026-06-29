@@ -267,10 +267,8 @@ export default function BillingClient({ profile, userId, statusParam }) {
                 <p style={{ fontSize: "1rem", color: "var(--th-text)", margin: 0, fontWeight: 600 }}>✅ You're on the list!</p>
                 <p style={{ fontSize: "0.85rem", color: "var(--th-text-muted)", marginTop: "8px" }}>We'll review your practice details and an admin will upgrade your account shortly.</p>
               </div>
-            ) : (
-              <>
-                <p style={{ fontSize: "0.9rem", color: "var(--th-text-muted)", lineHeight: 1.6, marginBottom: "20px" }}>
-                  To upgrade to a paid plan, please agree to our compliance terms before checking out securely via Lemon Squeezy.
+                         <p style={{ fontSize: "0.9rem", color: "var(--th-text-muted)", lineHeight: 1.6, marginBottom: "20px" }}>
+                  To upgrade to a paid plan, please agree to our compliance terms before checking out securely via Razorpay.
                 </p>
                 <form onSubmit={handleCheckoutSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                   
@@ -284,7 +282,7 @@ export default function BillingClient({ profile, userId, statusParam }) {
                       I understand and agree that PsychoLog is an un-indexed, de-identified workflow tool. I agree that I will never input, upload, or transmit any Personally Identifiable Information (PII) or Protected Health Information (PHI)—including real names, phone numbers, or government IDs—into the platform. I maintain sole responsibility for maintaining any patient identity indexes offline.
                     </span>
                   </label>
-
+ 
                   <button type="submit" disabled={loading} className="btn-th-primary" style={{ padding: "14px", fontSize: "0.95rem", fontWeight: 600, marginTop: "8px" }}>
                     {loading ? "Redirecting to secure checkout..." : "I Agree — Continue to Checkout"}
                   </button>
@@ -292,6 +290,39 @@ export default function BillingClient({ profile, userId, statusParam }) {
               </>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Premium Loading Overlay */}
+      {loading && (
+        <div style={{
+          position: "fixed", inset: 0,
+          background: "rgba(6,10,15,0.85)",
+          backdropFilter: "blur(12px)",
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+          zIndex: 9999, transition: "all 0.3s ease"
+        }}>
+          <div className="razorpay-spinner" style={{
+            width: "50px", height: "50px",
+            border: "4px solid rgba(34,211,238,0.1)",
+            borderTop: "4px solid #22d3ee",
+            borderRadius: "50%",
+            animation: "rzp-spin 1s linear infinite",
+            marginBottom: "20px"
+          }} />
+          <p style={{ color: "#fff", fontSize: "1rem", fontWeight: 700, letterSpacing: "-0.01em", margin: 0 }}>
+            Connecting to Razorpay Secure...
+          </p>
+          <p style={{ color: "#94a3b8", fontSize: "0.78rem", marginTop: "6px", margin: 0 }}>
+            Preparing your subscription checkout session. Please do not close this window.
+          </p>
+
+          <style>{`
+            @keyframes rzp-spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}</style>
         </div>
       )}
     </div>

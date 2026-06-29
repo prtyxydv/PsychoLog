@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const PLANS = [
   {
@@ -79,6 +79,17 @@ export default function BillingClient({ profile, userId, statusParam }) {
   const [waitlistSuccess, setWaitlistSuccess] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState("pro");
 
+  // Dynamically load Razorpay script
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
   async function handleUpgrade(planName) {
     setSelectedPlan(planName.toLowerCase());
     setShowWaitlist(true);
@@ -93,21 +104,46 @@ export default function BillingClient({ profile, userId, statusParam }) {
         throw new Error("User ID not found. Please log out and log back in.");
       }
 
-      const paymentLinks = {
-        basic: process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK_BASIC || "https://buy.stripe.com/test_basic_placeholder",
-        pro: process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK_PRO || "https://buy.stripe.com/test_pro_placeholder",
-        elite: process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK_ELITE || "https://buy.stripe.com/test_elite_placeholder",
-      };
+      // 1. Create Razorpay subscription on the server
+      const res = await fetch("/api/razorpay/create-subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: selectedPlan }),
+      });
 
-      const link = paymentLinks[selectedPlan];
-      if (!link || link.includes("placeholder")) {
-        throw new Error("Stripe checkout link not configured. Please contact the administrator.");
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to initiate subscription.");
       }
 
-      const checkoutUrl = `${link}?client_reference_id=${userId}&prefilled_email=${encodeURIComponent(profile?.email || "")}`;
-      
-      // Redirect to Stripe Checkout
-      window.location.href = checkoutUrl;
+      const { subscriptionId, keyId } = data;
+
+      // 2. Open Razorpay Modal
+      const options = {
+        key: keyId,
+        subscription_id: subscriptionId,
+        name: "PsychoLog",
+        description: `${selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)} Plan Subscription`,
+        image: "https://psychologweb.vercel.app/favicon.ico",
+        handler: function (response) {
+          window.location.href = "/dashboard/billing?status=success";
+        },
+        prefill: {
+          name: profile?.full_name || "",
+          email: profile?.email || "",
+        },
+        theme: {
+          color: "#22d3ee", // Cyan
+        },
+        modal: {
+          ondismiss: function () {
+            setLoading(false);
+          }
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
     } catch (err) {
       alert(err.message);
       setLoading(false);
@@ -216,7 +252,7 @@ export default function BillingClient({ profile, userId, statusParam }) {
       </div>
 
       <p style={{ marginTop: "24px", fontSize: "0.75rem", color: "var(--th-text-subtle)", lineHeight: 1.6 }}>
-        Payments are securely processed via Stripe. By upgrading, you agree to our Terms of Service.
+        Payments are securely processed via Razorpay. By upgrading, you agree to our Terms of Service.
       </p>
 
       {/* Waitlist & Legal Modal */}

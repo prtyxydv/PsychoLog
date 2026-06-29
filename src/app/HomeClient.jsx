@@ -3,31 +3,29 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 
-// ─── THEME ───────────────────────────────────────────────────
+// ─── COLOR PALETTE (Strict Cyan, Orange, Black, White) ────────
 const C = {
-  cyan:       "#22d3ee",
-  cyanDim:    "rgba(34,211,238,0.12)",
-  cyanBorder: "rgba(34,211,238,0.25)",
-  orange:     "#fb923c",
-  orangeDim:  "rgba(251,146,60,0.12)",
-  orangeBorder:"rgba(251,146,60,0.25)",
-  white:      "#f8fafc",
-  muted:      "#94a3b8",
-  subtle:     "#334155",
-  bg:         "#060a0f",
-  surface:    "rgba(255,255,255,0.03)",
-  border:     "rgba(255,255,255,0.07)",
-  red:        "#f87171",
-  redDim:     "rgba(248,113,113,0.1)",
-  redBorder:  "rgba(248,113,113,0.22)",
-  green:      "#4ade80",
+  cyan:         "#22d3ee",
+  cyanDim:      "rgba(34,211,238,0.12)",
+  cyanBorder:   "rgba(34,211,238,0.25)",
+  orange:       "#fb923c",
+  orangeDim:    "rgba(251,146,60,0.12)",
+  orangeBorder: "rgba(251,146,60,0.25)",
+  white:        "#f8fafc",
+  darkBg:       "#060a0f",
+  muted:        "#94a3b8",
+  subtle:       "#475569",
+  red:          "#f87171",
+  redDim:       "rgba(248,113,113,0.1)",
+  redBorder:    "rgba(248,113,113,0.22)",
+  green:        "#4ade80",
 };
 
-const PLAN_COLORS = { free: C.muted, basic: C.cyan, pro: C.orange, elite: "#e879f9" };
+const PLAN_COLORS = { free: C.muted, basic: C.cyan, pro: C.orange, elite: C.orange };
 const PLAN_LABELS = { free: "Free Beta", basic: "Basic", pro: "Pro", elite: "Elite" };
 
 // ─── LIVE CLOCK ───────────────────────────────────────────────
-function Clock() {
+function Clock({ isDark }) {
   const [t, setT] = useState(new Date());
   useEffect(() => {
     const id = setInterval(() => setT(new Date()), 1000);
@@ -38,6 +36,7 @@ function Clock() {
   const s  = t.getSeconds().toString().padStart(2, "0");
   const ap = t.getHours() >= 12 ? "PM" : "AM";
   const date = t.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+  
   return (
     <div style={{ textAlign: "right" }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "flex-end", gap: "4px" }}>
@@ -45,15 +44,17 @@ function Clock() {
           fontSize: "clamp(3.5rem,8vw,6.5rem)", fontWeight: 900,
           letterSpacing: "-0.06em", lineHeight: 1,
           fontVariantNumeric: "tabular-nums",
-          background: `linear-gradient(135deg, ${C.white} 40%, ${C.cyan})`,
+          background: isDark
+            ? `linear-gradient(135deg, ${C.white} 40%, ${C.cyan})`
+            : `linear-gradient(135deg, #1e293b 40%, ${C.cyan})`,
           WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
         }}>{h}:{m}</span>
         <div style={{ display: "flex", flexDirection: "column", paddingTop: "clamp(8px,1.5vw,14px)", gap: "3px" }}>
           <span style={{ fontSize: "clamp(0.9rem,1.8vw,1.3rem)", fontWeight: 800, color: C.orange }}>{ap}</span>
-          <span style={{ fontSize: "clamp(0.8rem,1.5vw,1.1rem)", fontWeight: 700, color: C.subtle, fontVariantNumeric: "tabular-nums" }}>{s}s</span>
+          <span style={{ fontSize: "clamp(0.8rem,1.5vw,1.1rem)", fontWeight: 700, color: "var(--th-text-subtle)", fontVariantNumeric: "tabular-nums" }}>{s}s</span>
         </div>
       </div>
-      <div style={{ fontSize: "0.82rem", color: C.subtle, marginTop: "6px", fontWeight: 500 }}>{date}</div>
+      <div style={{ fontSize: "0.82rem", color: "var(--th-text-muted)", marginTop: "6px", fontWeight: 500 }}>{date}</div>
     </div>
   );
 }
@@ -74,7 +75,7 @@ function Stat({ icon, label, value, color, colorDim, colorBorder, href }) {
       <div style={{ fontSize: "1.4rem", width: 42, height: 42, borderRadius: "11px", background: `${color}14`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{icon}</div>
       <div>
         <div style={{ fontSize: "1.6rem", fontWeight: 900, color, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{value}</div>
-        <div style={{ fontSize: "0.72rem", color: C.subtle, marginTop: "3px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</div>
+        <div style={{ fontSize: "0.72rem", color: "var(--th-text-muted)", marginTop: "3px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</div>
       </div>
     </div>
   );
@@ -85,16 +86,22 @@ function Stat({ icon, label, value, color, colorDim, colorBorder, href }) {
 export default function HomeClient({ profile, unreadPatients, upcomingSessions, totalPatients }) {
   const [mounted, setMounted] = useState(false);
   const [greeting, setGreeting] = useState({ text: "Good morning", emoji: "☀️" });
+  const [isDark, setIsDark] = useState(false);
   const canvasRef = useRef(null);
 
+  // Sync theme status on mount
   useEffect(() => {
     setMounted(true);
+    const stored = localStorage.getItem("psycholog-theme");
+    const dark = stored === "dark";
+    setIsDark(dark);
+
     const h = new Date().getHours();
     if (h < 12)      setGreeting({ text: "Good morning",   emoji: "☀️" });
     else if (h < 17) setGreeting({ text: "Good afternoon", emoji: "🌤️" });
     else             setGreeting({ text: "Good evening",   emoji: "🌙" });
 
-    // Animated orbs — cyan + orange tones to match theme
+    // Animated orbs — cyan + orange tones
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -111,12 +118,15 @@ export default function HomeClient({ profile, unreadPatients, upcomingSessions, 
 
     function draw() {
       ctx.clearRect(0, 0, W, H);
+      const isCurrentlyDark = document.documentElement.classList.contains("dark");
+      const orbOpacity = isCurrentlyDark ? 0.07 : 0.02;
+
       orbs.forEach(o => {
         o.x += o.dx; o.y += o.dy;
         if (o.x < -o.r) o.x = W + o.r; if (o.x > W + o.r) o.x = -o.r;
         if (o.y < -o.r) o.y = H + o.r; if (o.y > H + o.r) o.y = -o.r;
         const g = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.r);
-        g.addColorStop(0, `hsla(${o.h},${o.s}%,${o.l}%,0.08)`);
+        g.addColorStop(0, `hsla(${o.h},${o.s}%,${o.l}%,${orbOpacity})`);
         g.addColorStop(1, `hsla(${o.h},${o.s}%,${o.l}%,0)`);
         ctx.fillStyle = g; ctx.beginPath(); ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2); ctx.fill();
       });
@@ -128,6 +138,17 @@ export default function HomeClient({ profile, unreadPatients, upcomingSessions, 
     return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", onResize); };
   }, []);
 
+  const toggleTheme = () => {
+    const newDark = !isDark;
+    setIsDark(newDark);
+    if (newDark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    localStorage.setItem("psycholog-theme", newDark ? "dark" : "light");
+  };
+
   if (!mounted) return null;
 
   const firstName = profile?.full_name?.split(" ")[0] ?? "Doctor";
@@ -138,14 +159,24 @@ export default function HomeClient({ profile, unreadPatients, upcomingSessions, 
   const nextSession = upcomingSessions[0];
 
   return (
-    <div style={{ minHeight: "100vh", background: C.bg, color: C.white, fontFamily: "'Inter','DM Sans',sans-serif", position: "relative", overflow: "hidden" }}>
+    <div style={{
+      minHeight: "100vh",
+      background: "var(--th-bg)",
+      color: "var(--th-text)",
+      fontFamily: "'Inter','DM Sans',sans-serif",
+      position: "relative",
+      overflow: "hidden",
+      transition: "background 0.3s ease, color 0.3s ease"
+    }}>
       {/* Orb canvas */}
       <canvas ref={canvasRef} style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }} />
 
       {/* Subtle dot grid */}
       <div style={{
         position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none",
-        backgroundImage: "radial-gradient(rgba(34,211,238,0.06) 1px, transparent 1px)",
+        backgroundImage: isDark
+          ? "radial-gradient(rgba(34,211,238,0.06) 1px, transparent 1px)"
+          : "radial-gradient(rgba(34,211,238,0.12) 1px, transparent 1px)",
         backgroundSize: "40px 40px",
       }} />
 
@@ -153,20 +184,44 @@ export default function HomeClient({ profile, unreadPatients, upcomingSessions, 
         {/* ── NAV ── */}
         <nav style={{
           padding: "18px 40px", display: "flex", justifyContent: "space-between", alignItems: "center",
-          borderBottom: "1px solid rgba(34,211,238,0.08)",
-          background: "rgba(6,10,15,0.7)", backdropFilter: "blur(20px)",
+          borderBottom: "1px solid var(--th-border)",
+          background: isDark ? "rgba(6,10,15,0.7)" : "rgba(247,245,240,0.7)",
+          backdropFilter: "blur(20px)",
           position: "sticky", top: 0, zIndex: 10,
+          transition: "background 0.3s ease, border-color 0.3s ease"
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <div style={{ width: 30, height: 30, borderRadius: "8px", background: `linear-gradient(135deg,${C.cyan},${C.orange})`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: "13px", color: "#000" }}>P</div>
-            <span style={{ fontWeight: 900, fontSize: "1rem", letterSpacing: "-0.03em", color: C.white }}>PsychoLog</span>
+            <span style={{ fontWeight: 900, fontSize: "1rem", letterSpacing: "-0.03em", color: "var(--th-text)" }}>PsychoLog</span>
           </div>
 
           <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+            {/* Theme toggle */}
+            <button
+              onClick={toggleTheme}
+              style={{
+                background: "var(--th-bg-secondary)",
+                border: "1px solid var(--th-border)",
+                borderRadius: "8px",
+                width: "32px",
+                height: "32px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                fontSize: "15px",
+                transition: "all 0.2s ease",
+              }}
+              title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {isDark ? "☀️" : "🌙"}
+            </button>
+            <div style={{ width: 1, height: 20, background: "var(--th-border)" }} />
+            
             <div style={{ padding: "5px 12px", borderRadius: "999px", background: `${planColor}15`, border: `1px solid ${planColor}35`, fontSize: "0.75rem", fontWeight: 700, color: planColor }}>
               ⚡ {planLabel}
             </div>
-            <span style={{ fontSize: "0.8rem", color: C.subtle }}>{profile?.email}</span>
+            <span style={{ fontSize: "0.8rem", color: "var(--th-text-subtle)" }}>{profile?.email}</span>
             <Link href="/dashboard" style={{
               textDecoration: "none", padding: "9px 22px", fontSize: "0.85rem", fontWeight: 800,
               background: `linear-gradient(135deg,${C.cyan},#0891b2)`,
@@ -188,12 +243,18 @@ export default function HomeClient({ profile, unreadPatients, upcomingSessions, 
             </div>
             <h1 style={{ fontSize: "clamp(2rem,4vw,3rem)", fontWeight: 900, letterSpacing: "-0.05em", lineHeight: 1.05, margin: "0 0 14px" }}>
               Welcome back,<br />
-              <span style={{ background: `linear-gradient(135deg,${C.white} 30%,${C.cyan})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              <span style={{
+                background: isDark
+                  ? `linear-gradient(135deg, ${C.white} 30%, ${C.cyan})`
+                  : `linear-gradient(135deg, #1e293b 30%, ${C.cyan})`,
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent"
+              }}>
                 Dr. {firstName}.
               </span>
             </h1>
             {/* Smart context line */}
-            <p style={{ color: C.muted, fontSize: "0.92rem", lineHeight: 1.7, maxWidth: "400px", margin: 0, borderLeft: `3px solid ${nextSession ? C.cyan : totalUnread > 0 ? C.orange : C.subtle}`, paddingLeft: "14px" }}>
+            <p style={{ color: "var(--th-text-muted)", fontSize: "0.92rem", lineHeight: 1.7, maxWidth: "400px", margin: 0, borderLeft: `3px solid ${nextSession ? C.cyan : totalUnread > 0 ? C.orange : "var(--th-border)"}`, paddingLeft: "14px" }}>
               {nextSession
                 ? <>Next: <strong style={{ color: C.cyan }}>{nextSession.patients?.display_alias || "Patient"}</strong> — {new Date(nextSession.next_appointment).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</>
                 : totalUnread > 0
@@ -204,7 +265,7 @@ export default function HomeClient({ profile, unreadPatients, upcomingSessions, 
 
           {/* Clock */}
           <div style={{ animation: "fadeUp 0.6s 0.1s ease forwards", opacity: 0 }}>
-            <Clock />
+            <Clock isDark={isDark} />
           </div>
         </div>
 
@@ -212,7 +273,7 @@ export default function HomeClient({ profile, unreadPatients, upcomingSessions, 
         <div style={{ padding: "0 40px", maxWidth: "1280px", margin: "0 auto" }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "14px" }}>
             <Stat icon="👥" label="Active Patients"    value={totalPatients}           color={C.cyan}   colorDim={C.cyanDim}   colorBorder={C.cyanBorder}   href="/dashboard" />
-            <Stat icon="🗓️" label="Upcoming Sessions"  value={upcomingSessions.length} color={C.white}  colorDim="rgba(248,250,252,0.05)" colorBorder="rgba(248,250,252,0.12)" href="/dashboard" />
+            <Stat icon="🗓️" label="Upcoming Sessions"  value={upcomingSessions.length} color="var(--th-text)"  colorDim="var(--th-bg-secondary)" colorBorder="var(--th-border)" href="/dashboard" />
             <Stat icon="📬" label="Unread Logs"        value={totalUnread}             color={totalUnread > 0 ? C.red : C.green} colorDim={totalUnread > 0 ? C.redDim : "rgba(74,222,128,0.08)"} colorBorder={totalUnread > 0 ? C.redBorder : "rgba(74,222,128,0.2)"} href="/dashboard" />
             <Stat icon="⚡" label="Your Plan"          value={planLabel}               color={planColor} colorDim={`${planColor}12`} colorBorder={`${planColor}30`} href="/dashboard/billing" />
           </div>
@@ -222,13 +283,18 @@ export default function HomeClient({ profile, unreadPatients, upcomingSessions, 
         <div style={{ padding: "22px 40px 60px", maxWidth: "1280px", margin: "0 auto", display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "18px" }}>
 
           {/* Upcoming Sessions */}
-          <div style={{ padding: "28px 30px", borderRadius: "18px", background: C.surface, border: `1px solid ${C.border}`, backdropFilter: "blur(20px)", animation: "fadeUp 0.6s 0.25s ease forwards", opacity: 0 }}>
+          <div style={{
+            padding: "28px 30px", borderRadius: "18px",
+            background: "var(--th-card)", border: "1px solid var(--th-border)",
+            backdropFilter: "blur(20px)", animation: "fadeUp 0.6s 0.25s ease forwards", opacity: 0,
+            transition: "background 0.3s ease, border-color 0.3s ease"
+          }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <div style={{ width: 34, height: 34, borderRadius: "9px", background: C.cyanDim, border: `1px solid ${C.cyanBorder}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem" }}>🗓️</div>
+                <div style={{ width: 34, height: 34, borderRadius: "999px", background: C.cyanDim, border: `1px solid ${C.cyanBorder}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem" }}>🗓️</div>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: "0.9rem", color: C.white }}>Upcoming Sessions</div>
-                  <div style={{ fontSize: "0.72rem", color: C.subtle }}>Sorted by nearest first</div>
+                  <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--th-text)" }}>Upcoming Sessions</div>
+                  <div style={{ fontSize: "0.72rem", color: "var(--th-text-subtle)" }}>Sorted by nearest first</div>
                 </div>
               </div>
               <Link href="/dashboard" style={{ textDecoration: "none", fontSize: "0.75rem", fontWeight: 700, color: C.cyan, padding: "5px 12px", borderRadius: "8px", background: C.cyanDim, border: `1px solid ${C.cyanBorder}` }}>View all →</Link>
@@ -237,7 +303,7 @@ export default function HomeClient({ profile, unreadPatients, upcomingSessions, 
             {upcomingSessions.length === 0 ? (
               <div style={{ padding: "48px 0", textAlign: "center" }}>
                 <div style={{ fontSize: "2.5rem", marginBottom: "10px" }}>🧘</div>
-                <p style={{ color: C.subtle, fontSize: "0.88rem", margin: "0 0 14px" }}>No upcoming sessions scheduled.</p>
+                <p style={{ color: "var(--th-text-subtle)", fontSize: "0.88rem", margin: "0 0 14px" }}>No upcoming sessions scheduled.</p>
                 <Link href="/dashboard" style={{ textDecoration: "none", fontSize: "0.8rem", fontWeight: 700, color: C.cyan }}>Go to a patient to schedule one →</Link>
               </div>
             ) : (
@@ -252,22 +318,22 @@ export default function HomeClient({ profile, unreadPatients, upcomingSessions, 
                       key={session.id}
                       style={{
                         textDecoration: "none", padding: "15px 18px", borderRadius: "13px",
-                        background: isToday ? C.cyanDim : "rgba(255,255,255,0.025)",
-                        border: `1px solid ${isToday ? C.cyanBorder : C.border}`,
+                        background: isToday ? C.cyanDim : "var(--th-bg-secondary)",
+                        border: `1px solid ${isToday ? C.cyanBorder : "var(--th-border)"}`,
                         display: "flex", justifyContent: "space-between", alignItems: "center",
-                        transition: "all 0.2s ease",
+                        transition: "all 0.2s ease, background 0.3s ease, border-color 0.3s ease",
                         animation: `fadeUp 0.5s ${0.3 + i * 0.07}s ease forwards`, opacity: 0,
                       }}
                       onMouseEnter={e => { e.currentTarget.style.background = C.cyanDim; e.currentTarget.style.borderColor = C.cyanBorder; e.currentTarget.style.transform = "translateX(6px)"; }}
-                      onMouseLeave={e => { e.currentTarget.style.background = isToday ? C.cyanDim : "rgba(255,255,255,0.025)"; e.currentTarget.style.borderColor = isToday ? C.cyanBorder : C.border; e.currentTarget.style.transform = "none"; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = isToday ? C.cyanDim : "var(--th-bg-secondary)"; e.currentTarget.style.borderColor = isToday ? C.cyanBorder : "var(--th-border)"; e.currentTarget.style.transform = "none"; }}
                     >
                       <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
                         <div style={{ width: 38, height: 38, borderRadius: "50%", background: `linear-gradient(135deg,${C.cyan},#0891b2)`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: "0.88rem", color: "#000", flexShrink: 0 }}>
                           {(session.patients?.display_alias || "P").charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <div style={{ fontWeight: 700, color: C.white, fontSize: "0.92rem" }}>{session.patients?.display_alias || "Patient"}</div>
-                          <div style={{ fontSize: "0.76rem", color: isToday ? C.cyan : C.muted, marginTop: "2px", fontWeight: 600 }}>
+                          <div style={{ fontWeight: 700, color: "var(--th-text)", fontSize: "0.92rem" }}>{session.patients?.display_alias || "Patient"}</div>
+                          <div style={{ fontSize: "0.76rem", color: isToday ? C.cyan : "var(--th-text-subtle)", marginTop: "2px", fontWeight: 600 }}>
                             {isToday ? "TODAY · " : isTomorrow ? "TOMORROW · " : ""}
                             {dt.toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
                           </div>
@@ -289,21 +355,22 @@ export default function HomeClient({ profile, unreadPatients, upcomingSessions, 
             {/* Unread Logs */}
             <div style={{
               padding: "24px 26px", borderRadius: "18px",
-              background: totalUnread > 0 ? C.redDim : C.surface,
-              border: `1px solid ${totalUnread > 0 ? C.redBorder : C.border}`,
+              background: totalUnread > 0 ? C.redDim : "var(--th-card)",
+              border: `1px solid ${totalUnread > 0 ? C.redBorder : "var(--th-border)"}`,
               backdropFilter: "blur(20px)", animation: "fadeUp 0.6s 0.35s ease forwards", opacity: 0,
+              transition: "background 0.3s ease, border-color 0.3s ease"
             }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                   <div style={{ width: 34, height: 34, borderRadius: "9px", background: totalUnread > 0 ? C.redDim : "rgba(74,222,128,0.1)", border: `1px solid ${totalUnread > 0 ? C.redBorder : "rgba(74,222,128,0.2)"}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     {totalUnread > 0 ? "📬" : "✅"}
                   </div>
-                  <div style={{ fontWeight: 700, fontSize: "0.9rem", color: C.white }}>Unread Logs</div>
+                  <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--th-text)" }}>Unread Logs</div>
                 </div>
                 {totalUnread > 0 && <span style={{ background: C.red, color: "#fff", fontSize: "0.68rem", fontWeight: 900, padding: "3px 9px", borderRadius: "999px" }}>{totalUnread} new</span>}
               </div>
               {unreadPatients.length === 0 ? (
-                <p style={{ color: C.subtle, fontSize: "0.85rem", margin: 0, padding: "12px 0", textAlign: "center" }}>All caught up! 🎉</p>
+                <p style={{ color: "var(--th-text-subtle)", fontSize: "0.85rem", margin: 0, padding: "12px 0", textAlign: "center" }}>All caught up! 🎉</p>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                   {unreadPatients.slice(0, 5).map(p => (
@@ -316,7 +383,7 @@ export default function HomeClient({ profile, unreadPatients, upcomingSessions, 
                       onMouseEnter={e => { e.currentTarget.style.background = C.redDim; e.currentTarget.style.transform = "translateX(4px)"; }}
                       onMouseLeave={e => { e.currentTarget.style.background = "rgba(248,113,113,0.06)"; e.currentTarget.style.transform = "none"; }}
                     >
-                      <span style={{ fontWeight: 600, color: "#fecaca", fontSize: "0.88rem" }}>{p.display_alias}</span>
+                      <span style={{ fontWeight: 600, color: "var(--th-text)", fontSize: "0.88rem" }}>{p.display_alias}</span>
                       <span style={{ background: C.red, color: "#fff", fontSize: "0.68rem", fontWeight: 900, padding: "2px 8px", borderRadius: "999px" }}>{p.unread_count}</span>
                     </Link>
                   ))}
@@ -326,18 +393,19 @@ export default function HomeClient({ profile, unreadPatients, upcomingSessions, 
 
             {/* Quick Jump */}
             <div style={{
-              padding: "24px 26px", borderRadius: "18px", background: C.surface, border: `1px solid ${C.border}`,
+              padding: "24px 26px", borderRadius: "18px", background: "var(--th-card)", border: "1px solid var(--th-border)",
               backdropFilter: "blur(20px)", animation: "fadeUp 0.6s 0.45s ease forwards", opacity: 0,
+              transition: "background 0.3s ease, border-color 0.3s ease"
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
                 <div style={{ width: 34, height: 34, borderRadius: "9px", background: C.orangeDim, border: `1px solid ${C.orangeBorder}`, display: "flex", alignItems: "center", justifyContent: "center" }}>⚡</div>
-                <div style={{ fontWeight: 700, fontSize: "0.9rem", color: C.white }}>Quick Jump</div>
+                <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--th-text)" }}>Quick Jump</div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
                 {[
                   { label: "All Patients", href: "/dashboard",          icon: "👥",  color: C.cyan,   dim: C.cyanDim,   border: C.cyanBorder },
                   { label: "Billing",      href: "/dashboard/billing",  icon: "💳",  color: C.orange, dim: C.orangeDim, border: C.orangeBorder },
-                  { label: "Settings",     href: "/dashboard/settings", icon: "⚙️",  color: C.muted,  dim: "rgba(148,163,184,0.08)", border: "rgba(148,163,184,0.15)" },
+                  { label: "Settings",     href: "/dashboard/settings", icon: "⚙️",  color: "var(--th-text-muted)",  dim: "var(--th-bg-secondary)", border: "var(--th-border)" },
                   { label: "Waitlist",     href: "/waitlist",           icon: "📋",  color: C.green,  dim: "rgba(74,222,128,0.08)", border: "rgba(74,222,128,0.2)" },
                 ].map(a => (
                   <Link key={a.label} href={a.href} style={{
@@ -368,7 +436,7 @@ export default function HomeClient({ profile, unreadPatients, upcomingSessions, 
               >
                 <div style={{ fontSize: "1.3rem", marginBottom: "6px" }}>🚀</div>
                 <div style={{ fontWeight: 800, color: C.orange, fontSize: "0.92rem", marginBottom: "4px" }}>Upgrade to Pro</div>
-                <div style={{ fontSize: "0.77rem", color: C.muted, lineHeight: 1.5 }}>Unlock unlimited patients, priority AI, and advanced analytics.</div>
+                <div style={{ fontSize: "0.77rem", color: "var(--th-text-subtle)", lineHeight: 1.5 }}>Unlock unlimited patients, priority AI, and advanced analytics.</div>
                 <div style={{ marginTop: "10px", fontSize: "0.78rem", fontWeight: 700, color: C.orange }}>View plans →</div>
               </Link>
             )}

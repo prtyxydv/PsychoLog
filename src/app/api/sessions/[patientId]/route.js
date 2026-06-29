@@ -9,7 +9,6 @@ import { cookies } from "next/headers";
  */
 
 async function getAuthUser() {
-  const cookieStore = cookies();
   const supabase = await createClient();
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user) return null;
@@ -33,7 +32,7 @@ export async function GET(request, { params }) {
     const user = await getAuthUser();
     if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { patientId } = params;
+    const { patientId } = await params;
     const adminClient = await createAdminClient();
 
     const { ok } = await verifyOwnership(adminClient, patientId, user.id);
@@ -67,7 +66,7 @@ export async function PATCH(request, { params }) {
     const user = await getAuthUser();
     if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { patientId } = params;
+    const { patientId } = await params;
     const body = await request.json();
 
     const adminClient = await createAdminClient();

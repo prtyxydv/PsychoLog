@@ -55,9 +55,16 @@ export default function SessionPlanClient({ patientId, patientAlias, patientCrea
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prep_notes: val }),
       });
-      if (res.ok) { setSaved(true); setTimeout(() => setSaved(false), 2000); }
+      if (res.ok) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setError(errData.error || "Failed to auto-save notes.");
+      }
     } catch (e) {
       console.error("Notes save failed:", e);
+      setError("Network error while saving notes.");
     } finally {
       setSaving(false);
     }
@@ -85,6 +92,9 @@ export default function SessionPlanClient({ patientId, patientAlias, patientCrea
         setApptSaved(true);
         setReminderSent(null); // reset since appointment changed
         setTimeout(() => setApptSaved(false), 3000);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setError(errData.error || "Failed to save appointment.");
       }
     } catch (e) {
       setError("Failed to save appointment. Please try again.");
@@ -95,16 +105,23 @@ export default function SessionPlanClient({ patientId, patientAlias, patientCrea
 
   async function clearAppointment() {
     setSaving(true);
+    setError(null);
     try {
-      await fetch(`/api/sessions/${patientId}`, {
+      const res = await fetch(`/api/sessions/${patientId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ next_appointment: null }),
       });
-      setAppointment("");
-      setReminderSent(null);
+      if (res.ok) {
+        setAppointment("");
+        setReminderSent(null);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setError(errData.error || "Failed to clear appointment.");
+      }
     } catch (e) {
       console.error("Clear failed:", e);
+      setError("Network error while clearing appointment.");
     } finally {
       setSaving(false);
     }

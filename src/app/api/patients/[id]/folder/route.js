@@ -19,7 +19,7 @@ export async function PATCH(request, { params }) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id: patientId } = params;
+    const { id: patientId } = await params;
     const body = await request.json();
     const folderName = (body.folder_name ?? "General").trim().slice(0, 80);
 

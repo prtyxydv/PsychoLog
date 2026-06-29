@@ -84,49 +84,6 @@
   --duration-breath: 4000ms;
 }
 
-/* ============================================================
-   DARK MODE OVERRIDES  (system preference)
-   ============================================================ */
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* ── Therapist: Crisp Dark (matches landing mockup) ── */
-    --th-bg:           #141210;
-    --th-bg-secondary: #1c1a18;
-    --th-surface:      #232120;
-    --th-border:       #2e2b28;
-    --th-border-soft:  #252320;
-    --th-text:         #f5f4f2;
-    --th-text-muted:   #a39d97;
-    --th-text-subtle:  #6b6560;
-    --th-accent:       #2dd4bf;
-    --th-accent-soft:  rgba(13,148,136,0.15);
-    --th-accent-hover: #14b8a6;
-    --th-sidebar:      #1a1816;
-    --th-sidebar-border: #2e2b28;
-    --th-card:         #232120;
-    --th-card-hover:   #2a2826;
-    --th-unread:       #f87171;
-
-    /* ── Patient: Ocean Deep (Dark) ── */
-    --pt-bg:           #0F172A;
-    --pt-bg-deep:      #0C1220;
-    --pt-surface:      rgba(15, 23, 42, 0.78);
-    --pt-glass:        rgba(30, 41, 59, 0.65);
-    --pt-glass-border: rgba(148, 163, 184, 0.15);
-    --pt-text:         #F0F9FF;
-    --pt-text-muted:   #BAE6FD;
-    --pt-text-subtle:  #7DD3FC;
-    --pt-accent:       #22D3EE;
-    --pt-accent-soft:  rgba(34, 211, 238, 0.14);
-    --pt-accent-glow:  rgba(34, 211, 238, 0.28);
-    --pt-gradient-1:   #1E3A5F;
-    --pt-gradient-2:   #164E63;
-    --pt-gradient-3:   #0C4A6E;
-
-    --crisis-bg:       rgba(220, 38, 38, 0.12);
-    --crisis-border:   rgba(220, 38, 38, 0.30);
-  }
-}
 
 /* ── Manual dark mode override via .dark class ── */
 .dark {

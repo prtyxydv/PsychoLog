@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import InviteModal from "@/components/ui/InviteModal";
 import { formatRelativeTime } from "@/lib/utils";
 
@@ -13,8 +14,17 @@ export default function DashboardShell({ profile, initialPatients = [], children
   const [filter, setFilter]           = useState("All");
   
   const pathname = usePathname();
+  const router = useRouter();
+  const supabase = createClient();
+  
   // Extract patient ID from URL if we are on a patient page
   const selectedId = pathname.match(/\/dashboard\/patient\/([^/]+)/)?.[1] || null;
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    router.push("/auth/login");
+    router.refresh();
+  }
 
   function handleInviteSuccess(newPatient) {
     setPatients(prev => [
@@ -227,6 +237,22 @@ export default function DashboardShell({ profile, initialPatients = [], children
                 🛠️ Admin Panel
               </Link>
             )}
+            
+            <button
+              onClick={handleLogout}
+              style={{
+                display: "flex", alignItems: "center", gap: "8px", width: "100%",
+                padding: "8px 10px", borderRadius: "var(--radius-sm)",
+                border: "none", background: "transparent", cursor: "pointer",
+                fontSize: "0.8rem", color: "#DC2626", fontWeight: 500,
+                marginTop: "16px", transition: "background 0.15s ease",
+                fontFamily: "Inter, sans-serif",
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = "#FEF2F2"}
+              onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+            >
+              🚪 Sign Out
+            </button>
           </div>
 
           {/* New Patient button */}
